@@ -88,6 +88,22 @@ examples/office.json   # sample office floor
 tests/                 # pytest suite
 ```
 
+### Earlier prototype modules
+
+The repository also contains four modules from an earlier prototype
+(May 2026) that are intentionally incomplete placeholders and are **not**
+part of the working pipeline above or the test suite:
+
+- `reality/core/edge_processor.py` — ORB keypoint frame-processor sketch
+- `reality/core/scene_graph.py` — minimal scene-graph container
+- `reality/infra/telemetry_server.py` — Flask ingest-endpoint sketch
+- `reality/infra/transport.py` — transport interface placeholder
+
+They expect third-party packages this project does not declare
+(`opencv-python`, `numpy`, `flask`, `psutil`), and `telemetry_server.py`
+references a `reality.utils` module that is not part of this open-source
+version. They are preserved as-is for reference.
+
 ## Configuration
 
 Environment variables (all optional):
