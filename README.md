@@ -1,6 +1,6 @@
-# reality-spatial-intelligence
+# reality
 
-AI-native spatial intelligence pipeline (simplified open-source version).
+REALITY - AI-native spatial intelligence pipeline (simplified open-source version).
 
 Ingest a description of physical space — zones (rooms, hallways), entities
 (sensors, furniture, robots), and how zones connect — then answer spatial
