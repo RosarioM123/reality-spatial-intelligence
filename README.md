@@ -208,6 +208,12 @@ pytest                    # 93 tests, ~0.2s, no network, no randomness
 - Action lifecycle states are strings, not a formal state machine
   library — deliberately, to keep the prototype legible.
 
+## License
+
+Proprietary — see [LICENSE](LICENSE). This repository and its original
+source code may not be copied, modified, distributed, or commercially
+used without the owner's permission.
+
 ## Further reading
 
 - [docs/thesis.md](docs/thesis.md) — the narrowed claim, the seven
