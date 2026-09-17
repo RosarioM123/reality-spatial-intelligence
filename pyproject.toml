@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "reality-spatial-intelligence"
 version = "0.1.0"
-description = "AI-native spatial intelligence pipeline (simplified open-source version)"
+description = "REALITY v0: simulation-first action/state layer for AI in the physical world"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
