@@ -1,0 +1,385 @@
+{
+  "actions": [],
+  "adjacency": {
+    "office": [
+      "receiving"
+    ],
+    "packing": [
+      "storage-a",
+      "shipping"
+    ],
+    "receiving": [
+      "storage-a",
+      "office"
+    ],
+    "shipping": [
+      "packing",
+      "storage-b"
+    ],
+    "storage-a": [
+      "receiving",
+      "storage-b",
+      "packing"
+    ],
+    "storage-b": [
+      "storage-a",
+      "shipping"
+    ]
+  },
+  "capabilities": {
+    "equipment": [
+      "move_entity",
+      "change_status",
+      "assign_entity",
+      "reserve_resource"
+    ],
+    "furniture": [
+      "change_status"
+    ],
+    "infrastructure": [
+      "change_status"
+    ],
+    "package": [
+      "move_entity",
+      "change_status",
+      "notify"
+    ],
+    "person": [
+      "notify"
+    ]
+  },
+  "constraints": [
+    {
+      "applies_to": [
+        "move_entity",
+        "reserve_resource",
+        "change_status",
+        "assign_entity",
+        "notify"
+      ],
+      "check": "entity_must_exist",
+      "description": "Actions cannot target unknown entities.",
+      "id": "c-target-exists",
+      "kind": "safety",
+      "name": "Target entity must exist"
+    },
+    {
+      "applies_to": [
+        "move_entity"
+      ],
+      "check": "target_zone_must_exist",
+      "description": "Moves must name a real zone.",
+      "id": "c-zone-exists",
+      "kind": "safety",
+      "name": "Destination zone must exist"
+    },
+    {
+      "applies_to": [
+        "move_entity"
+      ],
+      "check": "zone_boundary_forbidden",
+      "description": "Packages may never be moved into the office zone.",
+      "id": "c-no-packages-in-office",
+      "kind": "safety",
+      "name": "Packages stay out of the office",
+      "parameters": {
+        "entity_kinds": [
+          "package"
+        ],
+        "forbidden_zones": [
+          "office"
+        ]
+      }
+    },
+    {
+      "applies_to": [
+        "reserve_resource"
+      ],
+      "check": "resource_must_be_available",
+      "description": "Only resources with availability=available can be reserved.",
+      "id": "c-resource-available",
+      "kind": "resource",
+      "name": "Resources must be available to reserve"
+    },
+    {
+      "applies_to": [
+        "move_entity"
+      ],
+      "check": "approval_required",
+      "description": "Physical moves need a named human approver in v0.",
+      "id": "c-move-approval",
+      "kind": "approval",
+      "name": "Moves require human approval"
+    }
+  ],
+  "entities": [
+    {
+      "id": "p17",
+      "kind": "package",
+      "name": "Package P17",
+      "position": [
+        18,
+        4
+      ],
+      "state": {
+        "availability": "available",
+        "status": "intake",
+        "weight_kg": 12
+      },
+      "zone_id": "storage-a"
+    },
+    {
+      "id": "p18",
+      "kind": "package",
+      "name": "Package P18",
+      "position": [
+        22,
+        5
+      ],
+      "state": {
+        "availability": "reserved",
+        "reserved_by": "team-ops",
+        "status": "stored"
+      },
+      "zone_id": "storage-a"
+    },
+    {
+      "id": "p19",
+      "kind": "package",
+      "name": "Package P19",
+      "position": [
+        6,
+        4
+      ],
+      "state": {
+        "availability": "available",
+        "status": "intake",
+        "weight_kg": 4
+      },
+      "zone_id": "receiving"
+    },
+    {
+      "id": "forklift-1",
+      "kind": "equipment",
+      "name": "Forklift 1",
+      "position": [
+        34,
+        4
+      ],
+      "state": {
+        "availability": "available",
+        "status": "operational"
+      },
+      "zone_id": "storage-b"
+    },
+    {
+      "id": "shelf-a1",
+      "kind": "furniture",
+      "name": "Shelf A1",
+      "position": [
+        16,
+        2
+      ],
+      "state": {
+        "status": "ok"
+      },
+      "zone_id": "storage-a"
+    },
+    {
+      "id": "dock-door-1",
+      "kind": "infrastructure",
+      "name": "Dock Door 1",
+      "position": [
+        34,
+        14
+      ],
+      "state": {
+        "status": "closed"
+      },
+      "zone_id": "shipping"
+    },
+    {
+      "id": "ana",
+      "kind": "person",
+      "name": "Ana",
+      "position": [
+        20,
+        14
+      ],
+      "state": {
+        "status": "on-shift"
+      },
+      "zone_id": "packing"
+    }
+  ],
+  "events": [],
+  "observations": [],
+  "relationships": [
+    {
+      "object_id": "storage-a",
+      "predicate": "inside",
+      "subject_id": "p17"
+    },
+    {
+      "object_id": "storage-a",
+      "predicate": "inside",
+      "subject_id": "p18"
+    },
+    {
+      "object_id": "receiving",
+      "predicate": "inside",
+      "subject_id": "p19"
+    },
+    {
+      "object_id": "ana",
+      "predicate": "assigned_to",
+      "subject_id": "forklift-1"
+    },
+    {
+      "object_id": "shipping",
+      "predicate": "blocking",
+      "subject_id": "dock-door-1"
+    }
+  ],
+  "version": "reality/v0",
+  "zones": [
+    {
+      "floor": 0,
+      "id": "receiving",
+      "name": "Receiving",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          12,
+          8
+        ],
+        [
+          0,
+          8
+        ]
+      ]
+    },
+    {
+      "floor": 0,
+      "id": "storage-a",
+      "name": "Storage A",
+      "polygon": [
+        [
+          14,
+          0
+        ],
+        [
+          26,
+          0
+        ],
+        [
+          26,
+          8
+        ],
+        [
+          14,
+          8
+        ]
+      ]
+    },
+    {
+      "floor": 0,
+      "id": "storage-b",
+      "name": "Storage B",
+      "polygon": [
+        [
+          28,
+          0
+        ],
+        [
+          40,
+          0
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          28,
+          8
+        ]
+      ]
+    },
+    {
+      "floor": 0,
+      "id": "packing",
+      "name": "Packing",
+      "polygon": [
+        [
+          14,
+          10
+        ],
+        [
+          26,
+          10
+        ],
+        [
+          26,
+          18
+        ],
+        [
+          14,
+          18
+        ]
+      ]
+    },
+    {
+      "floor": 0,
+      "id": "shipping",
+      "name": "Shipping",
+      "polygon": [
+        [
+          28,
+          10
+        ],
+        [
+          40,
+          10
+        ],
+        [
+          40,
+          18
+        ],
+        [
+          28,
+          18
+        ]
+      ]
+    },
+    {
+      "floor": 0,
+      "id": "office",
+      "name": "Office",
+      "polygon": [
+        [
+          0,
+          10
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          12,
+          18
+        ],
+        [
+          0,
+          18
+        ]
+      ]
+    }
+  ]
+}

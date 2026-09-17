@@ -1,1 +1,323 @@
-{"adjacency":{"hallway":["lobby","office-a","office-b"],"lobby":["hallway"],"office-a":["hallway"],"office-b":["hallway"]},"entities":[{"id":"reception-desk","kind":"furniture","name":"Reception Desk","position":[5,4],"zone_id":"lobby"},{"id":"coffee-machine","kind":"equipment","name":"Coffee Machine","position":[2,7],"zone_id":"lobby"},{"id":"printer-1","kind":"equipment","name":"Printer 1","position":[12,16],"zone_id":"hallway"},{"id":"desk-1","kind":"furniture","name":"Desk 1","position":[18,15],"zone_id":"office-a"},{"id":"sensor-temp-1","kind":"sensor","name":"Temperature Sensor 1","position":[20,5],"zone_id":"office-b"}],"zones":[{"floor":0,"id":"lobby","name":"Lobby","polygon":[[0,0],[10,0],[10,8],[0,8]],"properties":{"kind":"common"}},{"floor":0,"id":"hallway","name":"Main Hallway","polygon":[[10,0],[14,0],[14,20],[10,20]],"properties":{"kind":"circulation"}},{"floor":0,"id":"office-a","name":"Office A","polygon":[[14,10],[24,10],[24,20],[14,20]],"properties":{"kind":"workspace"}},{"floor":0,"id":"office-b","name":"Office B","polygon":[[14,0],[24,0],[24,10],[14,10]],"properties":{"kind":"workspace"}}]}
+{
+  "actions": [],
+  "adjacency": {
+    "hallway": [
+      "lobby",
+      "office-a",
+      "office-b"
+    ],
+    "lobby": [
+      "hallway"
+    ],
+    "office-a": [
+      "hallway"
+    ],
+    "office-b": [
+      "hallway"
+    ]
+  },
+  "capabilities": {
+    "equipment": [
+      "change_status"
+    ],
+    "furniture": [],
+    "person": [
+      "notify"
+    ],
+    "sensor": [],
+    "team": [],
+    "workstation": [
+      "reserve_resource",
+      "assign_entity",
+      "change_status"
+    ]
+  },
+  "constraints": [
+    {
+      "applies_to": [
+        "move_entity",
+        "reserve_resource",
+        "change_status",
+        "assign_entity",
+        "notify"
+      ],
+      "check": "entity_must_exist",
+      "description": "Actions cannot target unknown entities.",
+      "id": "c-target-exists",
+      "kind": "safety",
+      "name": "Target entity must exist",
+      "parameters": {}
+    },
+    {
+      "applies_to": [
+        "reserve_resource"
+      ],
+      "check": "resource_must_be_available",
+      "description": "Only resources with availability=available can be reserved.",
+      "id": "c-resource-available",
+      "kind": "resource",
+      "name": "Resources must be available to reserve",
+      "parameters": {}
+    }
+  ],
+  "entities": [
+    {
+      "id": "reception-desk",
+      "kind": "furniture",
+      "name": "Reception Desk",
+      "position": [
+        5,
+        4
+      ],
+      "state": {
+        "status": "ok"
+      },
+      "zone_id": "lobby"
+    },
+    {
+      "id": "coffee-machine",
+      "kind": "equipment",
+      "name": "Coffee Machine",
+      "position": [
+        2,
+        7
+      ],
+      "state": {
+        "status": "operational"
+      },
+      "zone_id": "lobby"
+    },
+    {
+      "id": "printer-1",
+      "kind": "equipment",
+      "name": "Printer 1",
+      "position": [
+        12,
+        16
+      ],
+      "state": {
+        "status": "operational"
+      },
+      "zone_id": "hallway"
+    },
+    {
+      "id": "desk-1",
+      "kind": "furniture",
+      "name": "Desk 1",
+      "position": [
+        18,
+        15
+      ],
+      "state": {
+        "status": "ok"
+      },
+      "zone_id": "office-a"
+    },
+    {
+      "id": "sensor-temp-1",
+      "kind": "sensor",
+      "name": "Temperature Sensor 1",
+      "position": [
+        20,
+        5
+      ],
+      "state": {
+        "status": "ok"
+      },
+      "zone_id": "office-b"
+    },
+    {
+      "id": "desk-2",
+      "kind": "workstation",
+      "name": "Desk 2",
+      "position": [
+        21,
+        16
+      ],
+      "state": {
+        "availability": "available",
+        "status": "clean"
+      },
+      "zone_id": "office-a"
+    },
+    {
+      "id": "desk-3",
+      "kind": "workstation",
+      "name": "Desk 3",
+      "position": [
+        16,
+        12
+      ],
+      "state": {
+        "assignee": "marco",
+        "availability": "occupied",
+        "status": "in-use"
+      },
+      "zone_id": "office-a"
+    },
+    {
+      "id": "desk-4",
+      "kind": "workstation",
+      "name": "Desk 4",
+      "position": [
+        18,
+        5
+      ],
+      "state": {
+        "availability": "available",
+        "status": "needs-cleaning"
+      },
+      "zone_id": "office-b"
+    },
+    {
+      "id": "team-finance",
+      "kind": "team",
+      "name": "Finance Team",
+      "position": [
+        19,
+        14
+      ],
+      "state": {},
+      "zone_id": "office-a"
+    },
+    {
+      "id": "rosario",
+      "kind": "person",
+      "name": "Rosario",
+      "position": [
+        12,
+        10
+      ],
+      "state": {
+        "status": "on-site"
+      },
+      "zone_id": "hallway"
+    }
+  ],
+  "events": [],
+  "observations": [],
+  "relationships": [
+    {
+      "object_id": "team-finance",
+      "predicate": "near",
+      "subject_id": "desk-2"
+    },
+    {
+      "object_id": "team-finance",
+      "predicate": "near",
+      "subject_id": "desk-3"
+    },
+    {
+      "object_id": "office-a",
+      "predicate": "inside",
+      "subject_id": "team-finance"
+    }
+  ],
+  "version": "reality/v0",
+  "zones": [
+    {
+      "floor": 0,
+      "id": "lobby",
+      "name": "Lobby",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          10,
+          8
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "properties": {
+        "kind": "common"
+      }
+    },
+    {
+      "floor": 0,
+      "id": "hallway",
+      "name": "Main Hallway",
+      "polygon": [
+        [
+          10,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          14,
+          20
+        ],
+        [
+          10,
+          20
+        ]
+      ],
+      "properties": {
+        "kind": "circulation"
+      }
+    },
+    {
+      "floor": 0,
+      "id": "office-a",
+      "name": "Office A",
+      "polygon": [
+        [
+          14,
+          10
+        ],
+        [
+          24,
+          10
+        ],
+        [
+          24,
+          20
+        ],
+        [
+          14,
+          20
+        ]
+      ],
+      "properties": {
+        "kind": "workspace"
+      }
+    },
+    {
+      "floor": 0,
+      "id": "office-b",
+      "name": "Office B",
+      "polygon": [
+        [
+          14,
+          0
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          24,
+          10
+        ],
+        [
+          14,
+          10
+        ]
+      ],
+      "properties": {
+        "kind": "workspace"
+      }
+    }
+  ]
+}
