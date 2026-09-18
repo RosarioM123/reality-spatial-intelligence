@@ -227,6 +227,43 @@ def cmd_demo(args: argparse.Namespace) -> int:
     return run_demo(args.world)
 
 
+def cmd_to_geojson(args: argparse.Namespace) -> int:
+    from reality.infra.geojson import world_to_geojson_str
+    world = _load_world(args.world)
+    text = world_to_geojson_str(world.spatial)
+    if args.out:
+        with open(args.out, "w", encoding="utf-8") as f:
+            f.write(text)
+        print(f"wrote {args.out}")
+    else:
+        print(text)
+    return 0
+
+
+def cmd_from_geojson(args: argparse.Namespace) -> int:
+    from reality.infra.geojson import load_geojson
+    try:
+        spatial = load_geojson(args.geojson)
+    except Exception as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    problems = validate_world(spatial)
+    if problems:
+        print("error: imported world is invalid:", file=sys.stderr)
+        for p in problems:
+            print(f"  - {p}", file=sys.stderr)
+        return 1
+    world = RealityWorld(spatial=spatial)
+    world.snapshot_baseline()
+    if args.out:
+        JsonFileWorldStore().save(world, args.out)
+        print(f"wrote {args.out}")
+    else:
+        print(f"valid: {len(spatial.zones)} zones, "
+              f"{len(spatial.entities)} entities")
+    return 0
+
+
 # -- human rendering ---------------------------------------------------------
 
 def _render_human(ans: dict) -> str:
@@ -384,6 +421,20 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("demo", help="end-to-end warehouse demo")
     p.add_argument("world", nargs="?", default="examples/warehouse.json")
     p.set_defaults(func=cmd_demo)
+
+    p = sub.add_parser("to-geojson",
+                       help="export the spatial substrate as GeoJSON")
+    p.add_argument("world")
+    p.add_argument("--out", default=None,
+                   help="write to this file instead of stdout")
+    p.set_defaults(func=cmd_to_geojson)
+
+    p = sub.add_parser("from-geojson",
+                       help="import a GeoJSON FeatureCollection as a world")
+    p.add_argument("geojson")
+    p.add_argument("--out", default=None,
+                   help="save the imported world to this JSON file")
+    p.set_defaults(func=cmd_from_geojson)
 
     args = parser.parse_args(argv)
     return args.func(args)
