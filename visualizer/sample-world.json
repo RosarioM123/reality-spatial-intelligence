@@ -1,0 +1,304 @@
+{
+ "zones": [
+  {
+   "id": "lobby",
+   "name": "Lobby",
+   "polygon": [
+    [
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     10.0,
+     0.0,
+     0.0
+    ],
+    [
+     10.0,
+     8.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0,
+     0.0
+    ]
+   ],
+   "floor": 0,
+   "properties": {
+    "kind": "common"
+   }
+  },
+  {
+   "id": "hallway",
+   "name": "Main Hallway",
+   "polygon": [
+    [
+     10.0,
+     0.0,
+     0.0
+    ],
+    [
+     14.0,
+     0.0,
+     0.0
+    ],
+    [
+     14.0,
+     20.0,
+     0.0
+    ],
+    [
+     10.0,
+     20.0,
+     0.0
+    ]
+   ],
+   "floor": 0,
+   "properties": {
+    "kind": "circulation"
+   }
+  },
+  {
+   "id": "office-a",
+   "name": "Office A",
+   "polygon": [
+    [
+     14.0,
+     10.0,
+     0.0
+    ],
+    [
+     24.0,
+     10.0,
+     0.0
+    ],
+    [
+     24.0,
+     20.0,
+     0.0
+    ],
+    [
+     14.0,
+     20.0,
+     0.0
+    ]
+   ],
+   "floor": 0,
+   "properties": {
+    "kind": "workspace"
+   }
+  },
+  {
+   "id": "office-b",
+   "name": "Office B",
+   "polygon": [
+    [
+     14.0,
+     0.0,
+     0.0
+    ],
+    [
+     24.0,
+     0.0,
+     0.0
+    ],
+    [
+     24.0,
+     10.0,
+     0.0
+    ],
+    [
+     14.0,
+     10.0,
+     0.0
+    ]
+   ],
+   "floor": 0,
+   "properties": {
+    "kind": "workspace"
+   }
+  }
+ ],
+ "entities": [
+  {
+   "id": "reception-desk",
+   "name": "Reception Desk",
+   "kind": "furniture",
+   "position": [
+    5.0,
+    4.0,
+    0.0
+   ],
+   "zone_id": "lobby",
+   "properties": {},
+   "state": {
+    "status": "ok"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "coffee-machine",
+   "name": "Coffee Machine",
+   "kind": "equipment",
+   "position": [
+    2.0,
+    7.0,
+    0.0
+   ],
+   "zone_id": "lobby",
+   "properties": {},
+   "state": {
+    "status": "operational"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "printer-1",
+   "name": "Printer 1",
+   "kind": "equipment",
+   "position": [
+    12.0,
+    16.0,
+    0.0
+   ],
+   "zone_id": "hallway",
+   "properties": {},
+   "state": {
+    "status": "operational"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "desk-1",
+   "name": "Desk 1",
+   "kind": "furniture",
+   "position": [
+    18.0,
+    15.0,
+    0.0
+   ],
+   "zone_id": "office-a",
+   "properties": {},
+   "state": {
+    "status": "ok"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "sensor-temp-1",
+   "name": "Temperature Sensor 1",
+   "kind": "sensor",
+   "position": [
+    20.0,
+    5.0,
+    0.0
+   ],
+   "zone_id": "office-b",
+   "properties": {},
+   "state": {
+    "status": "ok"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "desk-2",
+   "name": "Desk 2",
+   "kind": "workstation",
+   "position": [
+    21.0,
+    16.0,
+    0.0
+   ],
+   "zone_id": "office-a",
+   "properties": {},
+   "state": {
+    "availability": "available",
+    "status": "clean"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "desk-3",
+   "name": "Desk 3",
+   "kind": "workstation",
+   "position": [
+    16.0,
+    12.0,
+    0.0
+   ],
+   "zone_id": "office-a",
+   "properties": {},
+   "state": {
+    "assignee": "marco",
+    "availability": "occupied",
+    "status": "in-use"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "desk-4",
+   "name": "Desk 4",
+   "kind": "workstation",
+   "position": [
+    18.0,
+    5.0,
+    0.0
+   ],
+   "zone_id": "office-b",
+   "properties": {},
+   "state": {
+    "availability": "available",
+    "status": "needs-cleaning"
+   },
+   "state_provenance": {}
+  },
+  {
+   "id": "team-finance",
+   "name": "Finance Team",
+   "kind": "team",
+   "position": [
+    19.0,
+    14.0,
+    0.0
+   ],
+   "zone_id": "office-a",
+   "properties": {},
+   "state": {},
+   "state_provenance": {}
+  },
+  {
+   "id": "rosario",
+   "name": "Rosario",
+   "kind": "person",
+   "position": [
+    12.0,
+    10.0,
+    0.0
+   ],
+   "zone_id": "hallway",
+   "properties": {},
+   "state": {
+    "status": "on-site"
+   },
+   "state_provenance": {}
+  }
+ ],
+ "adjacency": {
+  "hallway": [
+   "lobby",
+   "office-a",
+   "office-b"
+  ],
+  "lobby": [
+   "hallway"
+  ],
+  "office-a": [
+   "hallway"
+  ],
+  "office-b": [
+   "hallway"
+  ]
+ }
+}
