@@ -1,6 +1,25 @@
 # REALITY — the action/state layer for AI in the physical world
 
-**Thesis:** AI systems that act in the physical world need a dedicated
+**Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 124 tests green, zero third-party dependencies.**
+
+## Demo
+
+> 📹 _Screen recording / GIF goes here — e.g. `reality demo` catching a lying
+> executor, or the visualizer's interactive map in action._
+
+## Quickstart (30 seconds)
+
+```bash
+git clone https://github.com/RosarioM123/reality-spatial-intelligence.git
+cd reality-spatial-intelligence
+pip install -e .
+reality demo   # the executable thesis: a warehouse run with a success AND a caught lie
+pytest         # 124 tests, ~0.3s, no network, no randomness
+```
+
+## The idea
+
+AI systems that act in the physical world need a dedicated
 layer that keeps *what was attempted*, *what was reported*, and *what was
 independently observed* rigorously separate — and verifies the first
 against the third.
@@ -48,12 +67,9 @@ cd reality-spatial-intelligence
 pip install -e .
 ```
 
-## Quickstart
+## More quickstart
 
 ```bash
-# The executable thesis: a warehouse run with a success AND a caught lie
-reality demo
-
 # Plain-language reasoning over a simulated world (JSON answers)
 reality ask examples/warehouse.json "where is package p17?" --format human
 reality ask examples/warehouse.json "what changed" --format human
@@ -160,6 +176,8 @@ reality/
     queries.py         # ask_world(): plain-language AI-native interface
     geometry.py        # dependency-free 2D geometry (scaffolding)
     index.py           # Quadtree spatial index: radius / bbox queries
+                       #   (available as a primitive; the default pipeline
+                       #   keeps its existing indexing behavior)
     geofence.py        # zone enter/exit detection over entity tracks
     pipeline.py        # spatial ingest → validate → index → query
   infra/
