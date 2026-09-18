@@ -78,6 +78,10 @@ reality validate examples/office.json
 reality route examples/office.json office-a office-b
 reality near examples/office.json 5 4 10 --kind equipment
 reality zones examples/office.json
+
+# GeoJSON interchange with GIS tooling
+reality to-geojson examples/office.json --out office.geojson
+reality from-geojson office.geojson --out office-imported.json
 ```
 
 Or from Python:
@@ -155,13 +159,21 @@ reality/
     verification.py    # expected-vs-observed comparison
     queries.py         # ask_world(): plain-language AI-native interface
     geometry.py        # dependency-free 2D geometry (scaffolding)
+    index.py           # Quadtree spatial index: radius / bbox queries
+    geofence.py        # zone enter/exit detection over entity tracks
     pipeline.py        # spatial ingest → validate → index → query
   infra/
     adapters.py        # ObservationSource / ActionExecutor / WorldStateStore
+    geojson.py         # world ↔ GeoJSON FeatureCollection interchange
     simulation.py      # deterministic simulator + fault injection
     demo.py            # `reality demo`: the end-to-end narrative
     store.py           # JSON persistence
     cli.py             # `reality` command-line interface
+  visualizer/          # zero-build Vue 3 + Sass demo page
+    index.html         #   open directly in a browser
+    app.js             #   map rendering, routing, in-browser ask() subset
+    styles.scss        #   Sass source (compiled to styles.css)
+    sample-world.json  #   office.json, exported via the Python library
   docs/
     thesis.md          # the claim, narrowed; objections; falsifiers
     architecture.md    # components and the data flow of one action
@@ -170,7 +182,7 @@ reality/
   research/
     adjacent-tech.md   # honest survey: PostGIS, twins, ROS 2, HA, MCP, …
 examples/              # warehouse.json, office.json
-tests/                 # pytest suite (93 tests)
+tests/                 # pytest suite (124 tests)
 ```
 
 ### Earlier prototype modules
@@ -190,8 +202,28 @@ Optional environment variables: `REALITY_DATA_DIR`,
 ## Tests
 
 ```bash
-pytest                    # 93 tests, ~0.2s, no network, no randomness
+pytest                    # 124 tests, ~0.3s, no network, no randomness
 ```
+
+## Visualizer
+
+`visualizer/` is a zero-build demo page (Vue 3 via CDN, Sass source with
+compiled CSS checked in) that renders a world as an interactive SVG map:
+zones, entities colored by kind, click-for-details, a route planner over
+the zone adjacency graph, layer toggles, and a query panel implementing a
+small in-browser subset of `ask()` (`where is …`, `list zones`,
+`list entities of kind …`, `route from … to …`, `what is near …`).
+
+```bash
+cd visualizer
+python3 -m http.server 8000   # or just open index.html directly
+# → http://localhost:8000
+```
+
+`sample-world.json` is `examples/office.json`'s spatial substrate,
+exported with `reality.core.models.SpatialWorld.to_dict()`. To visualize
+your own world: `reality to-geojson <world> --out w.geojson`, or swap in
+any `SpatialWorld.to_dict()` JSON as `sample-world.json`.
 
 ## Limitations (honest)
 
