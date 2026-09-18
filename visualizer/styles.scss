@@ -1,0 +1,381 @@
+// REALITY visualizer styles — Sass source. Compiled to styles.css.
+// Palette: ink on paper, one accent. The map should look like a diagram,
+// not a video game.
+
+// -- tokens ---------------------------------------------------------------
+$bg: #f7f5ef;
+$panel: #ffffff;
+$ink: #1e2430;
+$muted: #6b7280;
+$line: #e2ddcf;
+$accent: #1d4ed8;
+$accent-soft: #dbeafe;
+
+$zone-fills: (
+  0: #eef2ff,
+  1: #ecfdf5,
+  2: #fef9e7,
+);
+$zone-stroke: #9aa7c7;
+
+$kind-colors: (
+  person: #dc2626,
+  team: #b45309,
+  workstation: #1d4ed8,
+  equipment: #6d28d9,
+  furniture: #4d7c0f,
+  sensor: #0e7490,
+  object: #6b7280,
+);
+
+$radius: 10px;
+$font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+$mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+// -- base -----------------------------------------------------------------
+* { box-sizing: border-box; }
+
+[v-cloak] { display: none; }
+
+body {
+  margin: 0;
+  background: $bg;
+  color: $ink;
+  font-family: $font;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+code, pre {
+  font-family: $mono;
+  font-size: 0.85em;
+}
+
+.muted { color: $muted; }
+.small { font-size: 0.85rem; }
+
+// -- top bar --------------------------------------------------------------
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  background: $panel;
+  border-bottom: 1px solid $line;
+
+  .brand h1 {
+    margin: 0;
+    font-size: 1.15rem;
+    letter-spacing: 0.08em;
+
+    span {
+      font-weight: 400;
+      color: $muted;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  .subtitle {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: $muted;
+  }
+}
+
+.layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.layer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid $line;
+  border-radius: 999px;
+  background: $panel;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-transform: capitalize;
+
+  input { accent-color: $accent; }
+
+  .chip {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: $muted;
+  }
+  .chip-zones { background: #c7d2fe; }
+  .chip-entities { background: $accent; }
+  .chip-routes { background: #16a34a; }
+  .chip-labels { background: $ink; }
+}
+
+// -- layout ---------------------------------------------------------------
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.canvas-wrap {
+  background: $panel;
+  border: 1px solid $line;
+  border-radius: $radius;
+  padding: 0.75rem;
+  min-width: 0;
+
+  .hint {
+    margin: 0.5rem 0.25rem 0;
+    font-size: 0.8rem;
+    color: $muted;
+  }
+}
+
+.world-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background:
+    linear-gradient($line 1px, transparent 1px),
+    linear-gradient(90deg, $line 1px, transparent 1px);
+  background-size: 4% 4%;
+  border-radius: 6px;
+}
+
+// -- svg layers -----------------------------------------------------------
+.zone {
+  cursor: pointer;
+
+  polygon {
+    stroke: $zone-stroke;
+    stroke-width: 0.12;
+    transition: fill 0.15s ease;
+  }
+
+  @each $floor, $fill in $zone-fills {
+    &.floor-#{$floor} polygon { fill: $fill; }
+  }
+
+  &:hover polygon { fill: $accent-soft; }
+}
+
+.zone-label {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: #3b4763;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.route-line {
+  fill: none;
+  stroke: #16a34a;
+  stroke-width: 0.35;
+  stroke-dasharray: 1.2 0.8;
+  stroke-linecap: round;
+}
+
+.route-stop { fill: #16a34a; }
+
+.entity {
+  cursor: pointer;
+
+  circle {
+    stroke: #fff;
+    stroke-width: 0.15;
+  }
+
+  @each $kind, $color in $kind-colors {
+    &.kind-#{$kind} circle { fill: $color; }
+  }
+
+  &:hover circle { stroke: $ink; }
+}
+
+.entity-label {
+  text-anchor: middle;
+  fill: $ink;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.35;
+}
+
+// -- side panel -----------------------------------------------------------
+.panel {
+  background: $panel;
+  border: 1px solid $line;
+  border-radius: $radius;
+  overflow: hidden;
+  align-self: start;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid $line;
+
+  button {
+    flex: 1;
+    padding: 0.65rem;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    color: $muted;
+    cursor: pointer;
+
+    &.active {
+      color: $accent;
+      box-shadow: inset 0 -2px 0 $accent;
+    }
+  }
+}
+
+.tab-body { padding: 1rem; }
+
+.entity-card {
+  h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+  h3 {
+    margin: 1rem 0 0.4rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $muted;
+  }
+
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 0.3rem;
+
+    > div {
+      display: grid;
+      grid-template-columns: 5.5rem 1fr;
+      gap: 0.5rem;
+    }
+  }
+
+  dt { color: $muted; font-size: 0.85rem; }
+  dd { margin: 0; overflow-wrap: anywhere; }
+
+  pre {
+    background: $bg;
+    border: 1px solid $line;
+    border-radius: 6px;
+    padding: 0.6rem;
+    overflow-x: auto;
+    margin: 0;
+  }
+}
+
+.route-form {
+  display: grid;
+  gap: 0.5rem;
+
+  label {
+    display: grid;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    color: $muted;
+  }
+
+  select, input {
+    font: inherit;
+    color: $ink;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid $line;
+    border-radius: 6px;
+    background: #fff;
+    width: 100%;
+  }
+
+  .row { display: flex; gap: 0.5rem; }
+  .route-info {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    color: #166534;
+  }
+}
+
+.query-box {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid $line;
+    border-radius: 6px;
+  }
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.answer {
+  background: #0f172a;
+  color: #dbeafe;
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+// -- buttons --------------------------------------------------------------
+.btn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: #fff;
+  color: $ink;
+  cursor: pointer;
+
+  &:hover { border-color: $accent; color: $accent; }
+
+  &.primary {
+    background: $accent;
+    border-color: $accent;
+    color: #fff;
+
+    &:hover { background: #1e40af; }
+  }
+
+  &.small {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.5rem;
+    font-family: $mono;
+  }
+}
+
+// -- footer ---------------------------------------------------------------
+.footnote {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.25rem 1.5rem;
+  font-size: 0.8rem;
+  color: $muted;
+}

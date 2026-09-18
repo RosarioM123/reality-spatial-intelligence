@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REALITY World Visualizer</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Vue 3 global build (demo page only; no build step needed) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+<div id="app" v-cloak>
+  <header class="topbar">
+    <div class="brand">
+      <h1>REALITY <span>visualizer</span></h1>
+      <p class="subtitle">spatial substrate, rendered live from
+        <code>sample-world.json</code></p>
+    </div>
+    <div class="layers" role="group" aria-label="Layers">
+      <label v-for="(on, name) in layers" :key="name" class="layer-toggle">
+        <input type="checkbox" v-model="layers[name]">
+        <span class="chip" :class="'chip-' + name"></span>{{ name }}
+      </label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="canvas-wrap">
+      <svg :viewBox="viewBox" class="world-svg" role="img"
+           aria-label="World map">
+        <!-- zones -->
+        <g v-if="layers.zones" class="layer-zones">
+          <g v-for="z in zoneList" :key="z.id" class="zone"
+             :class="'floor-' + z.floor"
+             @click="focusZone(z.id)">
+            <polygon :points="svgPoints(z.polygon)" />
+            <text v-if="layers.labels" :x="z.cx" :y="z.cy"
+                  class="zone-label"
+                  :font-size="labelSize">{{ z.name }}</text>
+          </g>
+        </g>
+        <!-- routes -->
+        <g v-if="layers.routes" class="layer-routes">
+          <polyline v-if="routePoints" :points="routePoints"
+                    class="route-line" />
+          <circle v-for="(p, i) in routeStops" :key="i"
+                  :cx="p[0]" :cy="p[1]" :r="dotR * 0.7" class="route-stop" />
+        </g>
+        <!-- entities -->
+        <g v-if="layers.entities" class="layer-entities">
+          <g v-for="e in entityList" :key="e.id"
+             class="entity" :class="'kind-' + e.kind"
+             :opacity="selected && selected.id !== e.id ? 0.45 : 1"
+             @click.stop="selectEntity(e.id)">
+            <circle :cx="e.position[0]" :cy="e.position[1]" :r="dotR" />
+            <text v-if="layers.labels" :x="e.position[0]" :y="e.position[1] - dotR * 1.8"
+                  class="entity-label"
+                  :font-size="labelSize * 0.85">{{ e.name }}</text>
+          </g>
+        </g>
+      </svg>
+      <p class="hint">Click an entity for details. Zones are clickable to
+        route from them.</p>
+    </section>
+
+    <aside class="panel">
+      <nav class="tabs">
+        <button :class="{active: tab === 'details'}"
+                @click="tab = 'details'">Details</button>
+        <button :class="{active: tab === 'query'}"
+                @click="tab = 'query'">Query</button>
+      </nav>
+
+      <div v-if="tab === 'details'" class="tab-body">
+        <div v-if="selected" class="entity-card">
+          <h2>{{ selected.name }}</h2>
+          <dl>
+            <div><dt>id</dt><dd><code>{{ selected.id }}</code></dd></div>
+            <div><dt>kind</dt><dd>{{ selected.kind }}</dd></div>
+            <div><dt>position</dt>
+              <dd>({{ fmt(selected.position[0]) }},
+                  {{ fmt(selected.position[1]) }})</dd></div>
+            <div><dt>zone</dt><dd>{{ zoneName(selected.zone_id) }}</dd></div>
+          </dl>
+          <h3>State</h3>
+          <pre v-if="Object.keys(selected.state).length"
+               >{{ pretty(selected.state) }}</pre>
+          <p v-else class="muted">no recorded state</p>
+          <button class="btn" @click="selected = null">Clear</button>
+        </div>
+        <div v-else class="entity-card muted">
+          <p>No entity selected. Click a dot on the map.</p>
+          <h3>Route planner</h3>
+          <div class="route-form">
+            <label>From
+              <select v-model="routeFrom">
+                <option v-for="z in zoneList" :key="z.id" :value="z.id">
+                  {{ z.name }}</option>
+              </select>
+            </label>
+            <label>To
+              <select v-model="routeTo">
+                <option v-for="z in zoneList" :key="z.id" :value="z.id">
+                  {{ z.name }}</option>
+              </select>
+            </label>
+            <div class="row">
+              <button class="btn primary" @click="findRoute">Route</button>
+              <button class="btn" @click="clearRoute">Clear</button>
+            </div>
+            <p v-if="routeInfo" class="route-info">{{ routeInfo }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="tab === 'query'" class="tab-body">
+        <p class="muted small">A small in-browser subset of the Python
+          <code>ask()</code> interface — same question shapes, same JSON
+          answer shapes.</p>
+        <div class="query-box">
+          <input v-model="queryText" @keyup.enter="runQuery"
+                 placeholder='e.g. "where is reception desk?"'
+                 aria-label="Spatial query">
+          <button class="btn primary" @click="runQuery">Ask</button>
+        </div>
+        <div class="presets">
+          <button v-for="p in presets" :key="p" class="btn small"
+                  @click="queryText = p; runQuery()">{{ p }}</button>
+        </div>
+        <pre v-if="queryResult" class="answer">{{ queryResult }}</pre>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footnote">
+    <p>Demo page: open <code>index.html</code> directly in a browser
+      (internet needed for the Vue CDN). World data:
+      <code>sample-world.json</code>, exported from
+      <code>examples/office.json</code> via the Python library.</p>
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
