@@ -1,5 +1,7 @@
 # REALITY — the action/state layer for AI in the physical world
 
+![CI](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml/badge.svg)
+
 **Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 124 tests green, zero third-party dependencies.**
 
 ## Demo
