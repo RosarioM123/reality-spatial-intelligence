@@ -16,6 +16,7 @@ git clone https://github.com/RosarioM123/reality-spatial-intelligence.git
 cd reality-spatial-intelligence
 pip install -e .
 reality demo   # the executable thesis: a warehouse run with a success AND a caught lie
+reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
 pytest         # 124 tests, ~0.3s, no network, no randomness
 ```
 
