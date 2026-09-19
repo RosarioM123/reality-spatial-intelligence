@@ -22,7 +22,7 @@ def _office():
 def test_load_office_example():
     pipeline = SpatialPipeline.from_dict(_office())
     assert len(pipeline.world.zones) == 4
-    assert len(pipeline.world.entities) == 5
+    assert len(pipeline.world.entities) == 10
 
 
 def test_locate_zone():
