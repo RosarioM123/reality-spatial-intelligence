@@ -1,3 +1,5 @@
+> **Status: paused.** Active work is on [world-workstate-infrastructure](https://github.com/RosarioM123/world-workstate-infrastructure). This repo resumes after the WORLD handoff experiment is validated.
+
 # REALITY — the action/state layer for AI in the physical world
 
 [![CI](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml)
