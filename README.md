@@ -39,7 +39,7 @@ reality demo   # the executable thesis: a warehouse run with a success AND a cau
 reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
 reality fleet examples/fleet.json --detail  # fleet ops: robots, capabilities, battery
 python examples/field_ops_demo.py  # end-to-end: mission -> fleet tasks -> telemetry
-pytest         # 170 tests, ~0.3s, no network, no randomness
+pytest         # 180 tests, ~0.3s, no network, no randomness
 ```
 
 ## Fleet operations
@@ -105,6 +105,17 @@ inc = incidents.raise_incident("Robot r-scout-1 lost", robot_id="r-scout-1",
 incidents.acknowledge(inc.id, actor="ops-lead", note="Dispatching recovery")
 incidents.resolve(inc.id, actor="ops-lead", note="Robot recovered at depot")
 ```
+
+## Zone watch + shift handover
+
+`reality/core/zone_watch.py` checks robots against their task-assigned
+zones — a robot in the wrong zone raises a violation for the incident
+pipeline. `reality/core/handover.py` generates the shift handover
+report: fleet status, open incidents by severity, uncovered telemetry
+flags. The page the incoming ops team reads.
+
+`python examples/field_ops_demo.py` runs the complete loop: mission →
+tasks → telemetry → zone violations → incidents → handover → rollup.
 
 ## The idea
 

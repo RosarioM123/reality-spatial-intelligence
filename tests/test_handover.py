@@ -1,6 +1,5 @@
 """Tests for shift handover reports."""
 
-import time
 
 from reality.core.fleet import FleetManager
 from reality.core.handover import generate_handover
