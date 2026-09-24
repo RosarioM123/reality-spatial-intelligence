@@ -17,9 +17,11 @@ import time
 
 from reality.core.bridge import Bridge
 from reality.core.fleet import FleetManager
+from reality.core.handover import generate_handover
 from reality.core.incidents import (
     SEVERITY_CRITICAL,
     SEVERITY_WARNING,
+    SOURCE_GEOFENCE,
     SOURCE_TELEMETRY,
     IncidentManager,
 )
@@ -30,6 +32,7 @@ from reality.core.telemetry import (
     TelemetryMonitor,
 )
 from reality.core.world import RealityWorld
+from reality.core.zone_watch import ZoneWatch
 
 _ALERT_SEVERITY = {ALERT_CRITICAL: SEVERITY_CRITICAL, ALERT_LOST: SEVERITY_CRITICAL}
 
@@ -113,6 +116,33 @@ def main() -> None:
                 dedup_key=f"{h.robot_id}-dark",
             )
 
+    # 4b. Zone watch: is anyone where they shouldn't be?
+    # Move r-hauler-2 to field-south (wrong zone for its idle state is
+    # fine, but let's simulate a stray by assigning it a depot task).
+    fleet.submit_task(
+        "stray-check",
+        "Return to depot",
+        {"navigate"},
+        target_zone="depot",
+        priority=1,
+    )
+    stray_task = fleet.assign_next()
+    if stray_task:
+        # r-hauler-2 gets it, but it's in field-north — violation.
+        watch = ZoneWatch(fleet)
+        for v in watch.check():
+            incidents.raise_incident(
+                title=f"Zone violation: {v.detail}",
+                robot_id=v.robot_id,
+                source=SOURCE_GEOFENCE,
+                severity=SEVERITY_WARNING,
+                dedup_key=f"{v.robot_id}-zone",
+            )
+            print(
+                f"  zone violation: {v.robot_id} in {v.actual_zone!r}, "
+                f"expected {v.expected_zone!r}"
+            )
+
     # Ops works the incident queue.
     open_incs = incidents.open_incidents()
     print(f"\nincidents: {len(open_incs)} open")
@@ -126,6 +156,10 @@ def main() -> None:
     # 5. Rollup for WORLD.
     print(f"\nmission rollup: {bridge.sync_status()}")
     print(f"incident summary: {incidents.summary()}")
+
+    # 6. Shift handover for the incoming team.
+    print()
+    print(generate_handover(fleet, incidents, monitor, shift_name="day-shift"))
 
 
 if __name__ == "__main__":
