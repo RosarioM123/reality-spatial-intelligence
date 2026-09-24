@@ -139,6 +139,32 @@ def cmd_near(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_fleet(args: argparse.Namespace) -> int:
+    from reality.core.fleet import FleetManager
+
+    world = _load_world(args.world)
+    fleet = FleetManager(world)
+    status = fleet.fleet_status()
+    print(f"fleet: {status['robot_count']} robots")
+    for state, count in sorted(status["robots_by_status"].items()):
+        print(f"  {state}: {count}")
+    if status["tasks_by_status"]:
+        print("tasks:")
+        for state, count in sorted(status["tasks_by_status"].items()):
+            print(f"  {state}: {count}")
+    if status["low_battery"]:
+        print(f"low battery: {', '.join(status['low_battery'])}")
+    if args.detail:
+        for robot in fleet.robots():
+            s = fleet.robot_status(robot.id)
+            caps = ", ".join(s["capabilities"])
+            print(
+                f"  {s['id']} ({s['name']}): {s['status']}, "
+                f"battery {s['battery']}%, zone {s['zone_id']}, caps [{caps}]"
+            )
+    return 0
+
+
 def cmd_zones(args: argparse.Namespace) -> int:
     pipeline = _load_spatial(args.world)
     for zid, zone in pipeline.world.zones.items():
@@ -430,6 +456,11 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("zones", help="list zones and their connections")
     p.add_argument("world")
     p.set_defaults(func=cmd_zones)
+
+    p = sub.add_parser("fleet", help="fleet status: robots, tasks, battery")
+    p.add_argument("world")
+    p.add_argument("--detail", action="store_true", help="per-robot breakdown")
+    p.set_defaults(func=cmd_fleet)
 
     p = sub.add_parser("state", help="believed state + provenance of an entity")
     p.add_argument("world")

@@ -37,7 +37,28 @@ cd reality-spatial-intelligence
 pip install -e .
 reality demo   # the executable thesis: a warehouse run with a success AND a caught lie
 reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
-pytest         # 124 tests, ~0.3s, no network, no randomness
+reality fleet examples/fleet.json --detail  # fleet ops: robots, capabilities, battery
+pytest         # 141 tests, ~0.3s, no network, no randomness
+```
+
+## Fleet operations
+
+`reality/core/fleet.py` is the operating layer for robots in the field:
+register robots with capabilities, submit tasks with requirements, and let
+the fleet manager assign work by capability fit + spatial proximity.
+
+```python
+import json
+from reality.core.fleet import FleetManager
+from reality.core.world import RealityWorld
+
+data = json.load(open("examples/fleet.json"))
+fleet = FleetManager(RealityWorld.from_dict(data))
+fleet.submit_task("t1", "Tow trailer", {"tow"}, target_zone="field-north", priority=10)
+task = fleet.assign_next()
+print(task.assigned_robot)  # r-hauler-1 — the only robot that can tow
+print(fleet.fleet_status())
+# {'robot_count': 4, 'robots_by_status': {'idle': 3, 'charging': 1}, ...}
 ```
 
 ## The idea
