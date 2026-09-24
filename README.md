@@ -1,15 +1,33 @@
-> **Status: paused.** Active work is on [world-workstate-infrastructure](https://github.com/RosarioM123/world-workstate-infrastructure). This repo resumes after the WORLD handoff experiment is validated.
-
 # REALITY — the action/state layer for AI in the physical world
 
 [![CI](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml)
 
 **Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 124 tests green, zero third-party dependencies.**
 
+> v0 is complete and validated. Active development is on the sibling project
+> [WORLD](https://github.com/RosarioM123/world-workstate-infrastructure)
+> (persistent work-state for agents); this repo resumes after the WORLD
+> handoff experiment ships.
+
 ## Demo
 
-> 📹 _Screen recording / GIF goes here — e.g. `reality demo` catching a lying
-> executor, or the visualizer's interactive map in action._
+`reality demo` runs the executable thesis end to end — including catching a
+lying executor:
+
+```
+=== 4. Authorize (human approval) -> execute -> observe -> verify ===
+  authorized: True
+  executor report: True (moved p17 to storage-b)
+  verification: verified
+  p17 believed zone: storage-b
+
+=== 6. FAILURE CASE: executor lies, observation tells the truth ===
+  executor report: True (moved p17 to packing (fault: effect suppressed))
+  verification: failed
+  discrepancy: p17.zone_id: expected 'packing', observed 'storage-b' (via sim-camera-1 @ obs-15)
+  p17 believed zone: storage-b
+  p17 actual zone: storage-b
+```
 
 ## Quickstart (30 seconds)
 
