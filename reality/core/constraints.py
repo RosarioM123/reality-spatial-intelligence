@@ -11,7 +11,8 @@ are added by writing a function plus one registry line.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from reality.core.models import Action, Constraint
@@ -50,8 +51,10 @@ def check_zone_boundary_forbidden(
     if entity is not None and entity.kind in kinds and to_zone in forbidden:
         return (
             False,
-            f"{entity.kind} {entity.id!r} may not enter zone {to_zone!r} "
-            f"(boundary constraint {constraint.id!r})",
+            (
+                f"{entity.kind} {entity.id!r} may not enter zone {to_zone!r} "
+                f"(boundary constraint {constraint.id!r})"
+            ),
         )
     return True, ""
 
@@ -66,8 +69,10 @@ def check_resource_must_be_available(
     if availability != "available":
         return (
             False,
-            f"{entity.id!r} is {availability!r}, not available "
-            f"(reserved_by={entity.state.get('reserved_by')!r})",
+            (
+                f"{entity.id!r} is {availability!r}, not available "
+                f"(reserved_by={entity.state.get('reserved_by')!r})"
+            ),
         )
     return True, ""
 
@@ -80,8 +85,10 @@ def check_approval_required(
     if not action.authorization or not action.authorization.get("approved_by"):
         return (
             False,
-            f"action type {action.type!r} requires human approval "
-            f"(constraint {constraint.id!r})",
+            (
+                f"action type {action.type!r} requires human approval "
+                f"(constraint {constraint.id!r})"
+            ),
         )
     return True, ""
 
@@ -95,9 +102,7 @@ CHECKS: dict[str, Check] = {
 }
 
 
-def evaluate(
-    action: Action, world: RealityWorld
-) -> list[tuple[Constraint, bool, str]]:
+def evaluate(action: Action, world: RealityWorld) -> list[tuple[Constraint, bool, str]]:
     """Run every constraint that applies to the action's type.
 
     Returns (constraint, ok, reason) triples. Unknown check keys fail closed:
@@ -109,9 +114,7 @@ def evaluate(
             continue
         check = CHECKS.get(constraint.check)
         if check is None:
-            results.append(
-                (constraint, False, f"unknown check {constraint.check!r}")
-            )
+            results.append((constraint, False, f"unknown check {constraint.check!r}"))
             continue
         ok, reason = check(action, world, constraint)
         results.append((constraint, ok, reason))

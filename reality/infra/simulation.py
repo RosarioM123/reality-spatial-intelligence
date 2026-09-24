@@ -52,60 +52,58 @@ class SimClock:
 class SimActionExecutor(ActionExecutor):
     """Applies action effects to simulated ground truth."""
 
-    def __init__(self, sim: "Simulation"):
+    def __init__(self, sim: Simulation):
         self.sim = sim
 
     def execute(self, action: Action) -> dict[str, Any]:
         truth = self.sim.ground_truth.get(action.target)
         if truth is None:
-            return {"success": False,
-                    "message": f"no such entity {action.target!r}"}
+            return {"success": False, "message": f"no such entity {action.target!r}"}
 
         fault = (self.sim.faults or {}).get(action.id)
 
         if action.type == "move_entity":
             to_zone = action.parameters.get("to_zone")
             if to_zone not in self.sim.world.spatial.zones:
-                return {"success": False,
-                        "message": f"unknown zone {to_zone!r}"}
+                return {"success": False, "message": f"unknown zone {to_zone!r}"}
             if fault == "report_success_without_effect":
-                return {"success": True,
-                        "message": f"moved {action.target} to {to_zone} "
-                                   f"(fault: effect suppressed)"}
+                return {
+                    "success": True,
+                    "message": f"moved {action.target} to {to_zone} "
+                    f"(fault: effect suppressed)",
+                }
             zone = to_zone
             if fault == "wrong_effect":
                 zone = self.sim.faults[action.id + ":to_zone"]
-            centroid = geometry.centroid(
-                self.sim.world.spatial.zones[zone].polygon
-            )
+            centroid = geometry.centroid(self.sim.world.spatial.zones[zone].polygon)
             truth["zone_id"] = zone
             truth["position"] = centroid.to_list()
-            return {"success": True,
-                    "message": f"moved {action.target} to {zone}"}
+            return {"success": True, "message": f"moved {action.target} to {zone}"}
 
         if action.type == "reserve_resource":
             truth["state"]["availability"] = "reserved"
             truth["state"]["reserved_by"] = action.parameters.get("for_whom")
-            return {"success": True,
-                    "message": f"reserved {action.target}"}
+            return {"success": True, "message": f"reserved {action.target}"}
 
         if action.type == "change_status":
             truth["state"]["status"] = action.parameters.get("status")
-            return {"success": True,
-                    "message": f"status of {action.target} -> "
-                               f"{action.parameters.get('status')!r}"}
+            return {
+                "success": True,
+                "message": f"status of {action.target} -> "
+                f"{action.parameters.get('status')!r}",
+            }
 
         if action.type == "assign_entity":
             truth["state"]["assignee"] = action.parameters.get("assignee")
-            return {"success": True,
-                    "message": f"assigned {action.target}"}
+            return {"success": True, "message": f"assigned {action.target}"}
 
         if action.type == "notify":
-            return {"success": True,
-                    "message": f"notified: {action.parameters.get('message')}"}
+            return {
+                "success": True,
+                "message": f"notified: {action.parameters.get('message')}",
+            }
 
-        return {"success": False,
-                "message": f"sim cannot execute {action.type!r}"}
+        return {"success": False, "message": f"sim cannot execute {action.type!r}"}
 
 
 class SimObservationSource(ObservationSource):
@@ -113,7 +111,7 @@ class SimObservationSource(ObservationSource):
 
     def __init__(
         self,
-        sim: "Simulation",
+        sim: Simulation,
         source_id: str = "sim-camera-1",
         confidence: float = 0.95,
         spoof: dict[str, dict[str, Any]] | None = None,
@@ -174,9 +172,7 @@ class Simulation:
             }
         self.executor = SimActionExecutor(self)
         self.source = SimObservationSource(self)
-        self.engine = ActionEngine(
-            self.world, self.executor, observer=self._observe
-        )
+        self.engine = ActionEngine(self.world, self.executor, observer=self._observe)
 
     def _observe(self) -> list[Observation]:
         self.clock.tick()
@@ -202,8 +198,12 @@ class Simulation:
         observe -> verify."""
         self.clock.tick()
         return self.engine.run(
-            type, actor, target, parameters,
-            approved_by=approved_by, provenance=provenance,
+            type,
+            actor,
+            target,
+            parameters,
+            approved_by=approved_by,
+            provenance=provenance,
         )
 
     def add_fault(self, action_id: str, fault: Any, **kwargs: Any) -> None:

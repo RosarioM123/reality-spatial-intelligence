@@ -42,13 +42,16 @@ def run_demo(world_path: str) -> int:
     ans = ask_world(world, "where is package p17?")
     _kv("zone", ans["entity"]["zone_id"])
     _kv("status", ans["entity"]["state"].get("status"))
-    _kv("evidence source",
-        ans["evidence"]["evidence"]["source"] if ans["evidence"] else None)
+    _kv(
+        "evidence source",
+        ans["evidence"]["evidence"]["source"] if ans["evidence"] else None,
+    )
 
     _say("3. Plan: propose moving p17 to storage-b (no approval yet)")
     sim.clock.tick()
-    a1 = engine.propose("move_entity", "demo-agent", "p17",
-                        {"to_zone": "storage-b"}, provenance="demo")
+    a1 = engine.propose(
+        "move_entity", "demo-agent", "p17", {"to_zone": "storage-b"}, provenance="demo"
+    )
     ok, msg = engine.authorize(a1)
     _kv("action", a1.id)
     _kv("authorized", ok)
@@ -74,8 +77,9 @@ def run_demo(world_path: str) -> int:
 
     _say("6. FAILURE CASE: executor lies, observation tells the truth")
     sim.clock.tick()
-    a2 = engine.propose("move_entity", "demo-agent", "p17",
-                        {"to_zone": "packing"}, provenance="demo")
+    a2 = engine.propose(
+        "move_entity", "demo-agent", "p17", {"to_zone": "packing"}, provenance="demo"
+    )
     # The executor will CLAIM success without moving anything.
     sim.add_fault(a2.id, "report_success_without_effect")
     engine.authorize(a2, approved_by="rosario")
@@ -104,6 +108,8 @@ def run_demo(world_path: str) -> int:
         "p17_history": world.history("p17"),
     }
     print(json.dumps(audit, indent=2)[:2000] + "\n  ... (truncated)")
-    print("\nDemo complete: 1 verified action, 1 failed verification "
-          "(executor/observation discrepancy caught).")
+    print(
+        "\nDemo complete: 1 verified action, 1 failed verification "
+        "(executor/observation discrepancy caught)."
+    )
     return 0

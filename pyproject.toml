@@ -18,3 +18,15 @@ testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 include = ["reality*"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+# Prototype modules from May-2026 are preserved as-is for reference
+# (see README "Earlier prototype modules"); they expect undeclared
+# heavy dependencies and are excluded from type checking.
+exclude = [
+    "reality/core/edge_processor.py",
+    "reality/infra/telemetry_server.py",
+    "reality/infra/transport.py",
+]

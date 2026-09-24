@@ -60,8 +60,7 @@ class GeofenceMonitor:
         self.zones = zones.zones if isinstance(zones, SpatialWorld) else zones
         self.emit_initial = emit_initial
         self._bboxes = {
-            zid: geometry.bounding_box(z.polygon)
-            for zid, z in self.zones.items()
+            zid: geometry.bounding_box(z.polygon) for zid, z in self.zones.items()
         }
         # entity_id -> zone_id | None (None = in no zone / unseen)
         self._last_zone: dict[str, str | None] = {}
@@ -81,9 +80,7 @@ class GeofenceMonitor:
         """Last known zone of an entity (None if in no zone or unseen)."""
         return self._last_zone.get(entity_id)
 
-    def update(
-        self, entity_id: str, point: Point, ts: float
-    ) -> list[GeofenceEvent]:
+    def update(self, entity_id: str, point: Point, ts: float) -> list[GeofenceEvent]:
         """Feed a position fix; returns any boundary-crossing events."""
         zone = self.locate(point)
         zone_id = zone.id if zone else None

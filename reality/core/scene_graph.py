@@ -1,5 +1,6 @@
 import time
 
+
 class SceneGraph:
     def __init__(self, frame_id, nodes, timestamp=None):
         self.frame_id = frame_id

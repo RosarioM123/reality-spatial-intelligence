@@ -11,8 +11,7 @@ HERE = os.path.dirname(__file__)
 
 
 def _load(name):
-    with open(os.path.join(HERE, "..", "examples", name),
-              encoding="utf-8") as f:
+    with open(os.path.join(HERE, "..", "examples", name), encoding="utf-8") as f:
         return json.load(f)
 
 

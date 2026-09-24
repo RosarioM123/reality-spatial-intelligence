@@ -72,9 +72,7 @@ def bboxes_intersect(
     b2: tuple[float, float, float, float],
 ) -> bool:
     """Do two (min_x, min_y, max_x, max_y) boxes overlap (edges count)?"""
-    return not (
-        b1[2] < b2[0] or b2[2] < b1[0] or b1[3] < b2[1] or b2[3] < b1[1]
-    )
+    return not (b1[2] < b2[0] or b2[2] < b1[0] or b1[3] < b2[1] or b2[3] < b1[1])
 
 
 def _orientation(a: Point, b: Point, c: Point) -> float:
@@ -127,9 +125,7 @@ def polygon_perimeter(polygon: list[Point]) -> float:
     n = len(polygon)
     if n < 2:
         return 0.0
-    return sum(
-        distance_2d(polygon[i], polygon[(i + 1) % n]) for i in range(n)
-    )
+    return sum(distance_2d(polygon[i], polygon[(i + 1) % n]) for i in range(n))
 
 
 def centroid(polygon: list[Point]) -> Point:

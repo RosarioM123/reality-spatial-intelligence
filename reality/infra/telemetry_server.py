@@ -1,17 +1,19 @@
-from flask import Flask, request, jsonify
-import numpy as np
-import psutil
 import time
 from queue import Queue
 from threading import Thread
 
+import numpy as np
+import psutil
+from flask import Flask, jsonify, request
+
 from ..core.edge_processor import EdgeFrameProcessor
-from ..utils import validate_ingest_payload, measure_latency, record_metrics
+from ..utils import measure_latency, record_metrics, validate_ingest_payload
 
 app = Flask(__name__)
 processor = EdgeFrameProcessor()
 
 ingest_queue = Queue(maxsize=100)
+
 
 def worker_loop():
     while True:
@@ -21,8 +23,10 @@ def worker_loop():
         # Real processing hidden intentionally
         ingest_queue.task_done()
 
+
 worker = Thread(target=worker_loop, daemon=True)
 worker.start()
+
 
 @app.route("/ingest", methods=["POST"])
 def ingest():
@@ -41,11 +45,8 @@ def ingest():
     cpu = psutil.cpu_percent(interval=0.05)
     record_metrics(latency, cpu)
 
-    return jsonify({
-        "graph": graph,
-        "latency_ms": latency,
-        "cpu_usage": cpu
-    })
+    return jsonify({"graph": graph, "latency_ms": latency, "cpu_usage": cpu})
+
 
 if __name__ == "__main__":
     app.run()

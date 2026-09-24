@@ -23,7 +23,8 @@ from __future__ import annotations
 
 import copy
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from reality.core import geometry
 from reality.core.models import (
@@ -161,31 +162,34 @@ class RealityWorld:
         new = self._normalize_attr(attr, value)
 
         prev_prov = entity.state_provenance.get(attr)
-        if prev_prov is not None and old != new:
-            if obs.confidence + 0.3 < prev_prov.confidence:
-                # Weak new evidence contradicts strong existing belief:
-                # log the conflict, keep the reading on record, but do NOT
-                # let a low-confidence observation overwrite a
-                # high-confidence belief. The conflict event is the signal
-                # that something (sensor fault, spoofing, stale data) needs
-                # attention.
-                produced.append(
-                    self._log(
-                        "observation_conflict",
-                        entity_id=entity.id,
-                        details={
-                            "attribute": attr,
-                            "believed": old,
-                            "reported": new,
-                            "believed_confidence": prev_prov.confidence,
-                            "reported_confidence": obs.confidence,
-                            "observation_id": obs.id,
-                        },
-                        caused_by={"kind": "observation", "id": obs.id},
-                        ts=obs.ts,
-                    )
+        if (
+            prev_prov is not None
+            and old != new
+            and obs.confidence + 0.3 < prev_prov.confidence
+        ):
+            # Weak new evidence contradicts strong existing belief:
+            # log the conflict, keep the reading on record, but do NOT
+            # let a low-confidence observation overwrite a
+            # high-confidence belief. The conflict event is the signal
+            # that something (sensor fault, spoofing, stale data) needs
+            # attention.
+            produced.append(
+                self._log(
+                    "observation_conflict",
+                    entity_id=entity.id,
+                    details={
+                        "attribute": attr,
+                        "believed": old,
+                        "reported": new,
+                        "believed_confidence": prev_prov.confidence,
+                        "reported_confidence": obs.confidence,
+                        "observation_id": obs.id,
+                    },
+                    caused_by={"kind": "observation", "id": obs.id},
+                    ts=obs.ts,
                 )
-                return produced
+            )
+            return produced
 
         if old != new:
             self._write_attr(entity, attr, new)
@@ -235,9 +239,7 @@ class RealityWorld:
             entity.state[attr] = value
 
     # -- temporal queries --------------------------------------------------
-    def history(
-        self, entity_id: str, attr: str | None = None
-    ) -> list[dict[str, Any]]:
+    def history(self, entity_id: str, attr: str | None = None) -> list[dict[str, Any]]:
         """Ordered state transitions for an entity (optionally one attribute)."""
         out = []
         for e in self.events:
@@ -257,9 +259,7 @@ class RealityWorld:
             )
         return out
 
-    def state_at(
-        self, entity_id: str, ts: float
-    ) -> dict[str, Any] | None:
+    def state_at(self, entity_id: str, ts: float) -> dict[str, Any] | None:
         """Reconstruct believed attribute values as of time ts."""
         if entity_id not in self._baseline:
             return None
@@ -276,9 +276,7 @@ class RealityWorld:
         """All events after timestamp `since`, oldest first."""
         return [e.to_dict() for e in self.events if e.ts > since]
 
-    def evidence_for(
-        self, entity_id: str, attr: str
-    ) -> dict[str, Any] | None:
+    def evidence_for(self, entity_id: str, attr: str) -> dict[str, Any] | None:
         """The evidential chain behind a current belief: value, provenance,
         and the observation that produced it."""
         entity = self.spatial.entities.get(entity_id)
@@ -293,9 +291,7 @@ class RealityWorld:
                 "evidence": None,
                 "note": "no observation on record; value is the initial belief",
             }
-        obs = next(
-            (o for o in self.observations if o.id == prov.observation_id), None
-        )
+        obs = next((o for o in self.observations if o.id == prov.observation_id), None)
         return {
             "entity_id": entity_id,
             "attribute": attr,
@@ -378,11 +374,9 @@ class RealityWorld:
     @staticmethod
     def from_dict(
         data: dict[str, Any], now: Callable[[], float] | None = None
-    ) -> "RealityWorld":
+    ) -> RealityWorld:
         spatial_data = data.get("spatial", data)
-        world = RealityWorld(
-            spatial=SpatialWorld.from_dict(spatial_data), now=now
-        )
+        world = RealityWorld(spatial=SpatialWorld.from_dict(spatial_data), now=now)
         world.relationships = [
             Relationship.from_dict(r) for r in data.get("relationships", [])
         ]
@@ -399,9 +393,7 @@ class RealityWorld:
         world.capabilities = {
             k: list(v) for k, v in data.get("capabilities", {}).items()
         }
-        world._id_counters = {
-            k: int(v) for k, v in data.get("id_counters", {}).items()
-        }
+        world._id_counters = {k: int(v) for k, v in data.get("id_counters", {}).items()}
         world._baseline = copy.deepcopy(data.get("baseline", {}))
         if not world._baseline:
             world.snapshot_baseline()

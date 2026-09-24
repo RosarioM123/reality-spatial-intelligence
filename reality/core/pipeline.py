@@ -63,8 +63,7 @@ class SpatialIndex:
         self.world = world
         # Precompute bounding boxes to skip most point-in-polygon tests.
         self._bboxes = {
-            zid: geometry.bounding_box(z.polygon)
-            for zid, z in world.zones.items()
+            zid: geometry.bounding_box(z.polygon) for zid, z in world.zones.items()
         }
 
     def zone_at(self, p: Point) -> Zone | None:
@@ -111,11 +110,11 @@ class SpatialPipeline:
         self.index = SpatialIndex(world)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "SpatialPipeline":
+    def from_dict(cls, data: dict) -> SpatialPipeline:
         return cls(load_world(data))
 
     @classmethod
-    def from_file(cls, path: str) -> "SpatialPipeline":
+    def from_file(cls, path: str) -> SpatialPipeline:
         return cls(load_world_file(path))
 
     # -- primitive queries -------------------------------------------------
@@ -127,9 +126,7 @@ class SpatialPipeline:
         self, p: Point, radius: float, kind: str | None = None, limit: int = 50
     ) -> list[dict]:
         hits = self.index.entities_near(p, radius, kind)[:limit]
-        return [
-            {"entity": e.to_dict(), "distance": round(d, 3)} for e, d in hits
-        ]
+        return [{"entity": e.to_dict(), "distance": round(d, 3)} for e, d in hits]
 
     def nearest(self, p: Point, kind: str | None = None) -> dict | None:
         hit = self.index.nearest(p, kind)
@@ -162,9 +159,7 @@ class SpatialPipeline:
     def describe_zone(self, zone_id: str) -> dict:
         zone = self.world.zones[zone_id]
         entities = [
-            e.to_dict()
-            for e in self.world.entities.values()
-            if e.zone_id == zone_id
+            e.to_dict() for e in self.world.entities.values() if e.zone_id == zone_id
         ]
         return {
             "zone": zone.to_dict(),

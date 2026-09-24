@@ -79,8 +79,7 @@ def test_route_direct():
 
 def test_route_multi_hop():
     pipeline = SpatialPipeline.from_dict(_office())
-    assert pipeline.route("office-a", "office-b") == [
-        "office-a", "hallway", "office-b"]
+    assert pipeline.route("office-a", "office-b") == ["office-a", "hallway", "office-b"]
 
 
 def test_route_same_zone():
@@ -96,10 +95,13 @@ def test_route_unknown_zone_raises():
 
 def test_route_disconnected_returns_none():
     data = _office()
-    data["zones"].append({
-        "id": "island", "name": "Island",
-        "polygon": [[100, 100], [110, 100], [110, 110], [100, 110]],
-    })
+    data["zones"].append(
+        {
+            "id": "island",
+            "name": "Island",
+            "polygon": [[100, 100], [110, 100], [110, 110], [100, 110]],
+        }
+    )
     pipeline = SpatialPipeline.from_dict(data)
     assert pipeline.route("lobby", "island") is None
 
@@ -130,5 +132,4 @@ def test_describe_zone():
     detail = pipeline.describe_zone("lobby")
     assert detail["area"] == pytest.approx(80.0)
     assert detail["connected_to"] == ["hallway"]
-    assert {e["id"] for e in detail["entities"]} == {
-        "reception-desk", "coffee-machine"}
+    assert {e["id"] for e in detail["entities"]} == {"reception-desk", "coffee-machine"}

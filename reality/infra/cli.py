@@ -25,10 +25,10 @@ import sys
 from reality.core.models import Point
 from reality.core.pipeline import (
     SpatialPipeline,
-    validate_world,
     WorldValidationError,
+    validate_world,
 )
-from reality.core.queries import ask, ask_world
+from reality.core.queries import ask_world
 from reality.core.world import RealityWorld
 from reality.infra.demo import run_demo
 from reality.infra.simulation import Simulation
@@ -41,7 +41,7 @@ def _load_spatial(path: str) -> SpatialPipeline:
     except FileNotFoundError:
         print(f"error: file not found: {path}", file=sys.stderr)
         sys.exit(2)
-    except Exception as exc:  # validation / JSON errors
+    except Exception as exc:  # noqa: BLE001 -- CLI reports clean errors for any load failure
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
 
@@ -86,6 +86,7 @@ def _load_sim(path: str) -> Simulation:
 
 # -- spatial commands (unchanged behavior) ---------------------------------
 
+
 def cmd_validate(args: argparse.Namespace) -> int:
     world = _load_world(args.world)
     problems = validate_world(world.spatial) + world.validate()
@@ -95,18 +96,19 @@ def cmd_validate(args: argparse.Namespace) -> int:
             print(f"  - {p}")
         return 1
     n_conn = sum(len(v) for v in world.spatial.adjacency.values())
-    print(f"valid: {len(world.spatial.zones)} zones, "
-          f"{len(world.spatial.entities)} entities, {n_conn} connections, "
-          f"{len(world.constraints)} constraints, "
-          f"{len(world.relationships)} relationships")
+    print(
+        f"valid: {len(world.spatial.zones)} zones, "
+        f"{len(world.spatial.entities)} entities, {n_conn} connections, "
+        f"{len(world.constraints)} constraints, "
+        f"{len(world.relationships)} relationships"
+    )
     return 0
 
 
 def cmd_ask(args: argparse.Namespace) -> int:
     sim = _load_sim(args.world)
     sim.observe()  # a runtime's first job is to look at the world
-    ans = ask_world(sim.world, args.question, runtime=sim,
-                    approved_by=args.approve_as)
+    ans = ask_world(sim.world, args.question, runtime=sim, approved_by=args.approve_as)
     if args.format == "human":
         print(_render_human(ans))
     else:
@@ -122,12 +124,10 @@ def cmd_route(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     if path is None:
-        print(json.dumps({"route": None,
-                          "message": "no connected path between zones"}))
+        print(json.dumps({"route": None, "message": "no connected path between zones"}))
         return 1
     names = [pipeline.world.zones[z].name for z in path]
-    print(json.dumps({"route": path, "names": names,
-                      "hops": len(path) - 1}, indent=2))
+    print(json.dumps({"route": path, "names": names, "hops": len(path) - 1}, indent=2))
     return 0
 
 
@@ -142,12 +142,15 @@ def cmd_zones(args: argparse.Namespace) -> int:
     pipeline = _load_spatial(args.world)
     for zid, zone in pipeline.world.zones.items():
         connected = ", ".join(sorted(pipeline.world.adjacency.get(zid, [])))
-        print(f"{zid}: {zone.name} (floor {zone.floor})"
-              + (f" -> {connected}" if connected else ""))
+        print(
+            f"{zid}: {zone.name} (floor {zone.floor})"
+            + (f" -> {connected}" if connected else "")
+        )
     return 0
 
 
 # -- action/state commands ---------------------------------------------------
+
 
 def cmd_state(args: argparse.Namespace) -> int:
     world = _load_world(args.world)
@@ -155,14 +158,22 @@ def cmd_state(args: argparse.Namespace) -> int:
     if entity is None:
         print(f"error: unknown entity {args.entity!r}", file=sys.stderr)
         return 1
-    print(json.dumps({
-        "id": entity.id, "name": entity.name, "kind": entity.kind,
-        "zone_id": entity.zone_id,
-        "position": entity.position.to_list(),
-        "state": entity.state,
-        "provenance": {k: v.to_dict()
-                       for k, v in entity.state_provenance.items()},
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "id": entity.id,
+                "name": entity.name,
+                "kind": entity.kind,
+                "zone_id": entity.zone_id,
+                "position": entity.position.to_list(),
+                "state": entity.state,
+                "provenance": {
+                    k: v.to_dict() for k, v in entity.state_provenance.items()
+                },
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -180,12 +191,20 @@ def cmd_observe(args: argparse.Namespace) -> int:
     observations = sim.observe()
     if args.save:
         JsonFileWorldStore().save(sim.world, args.save)
-    changed = [e for e in sim.world.events
-               if e.type in ("state_changed", "observation_conflict")]
-    print(json.dumps({
-        "observations": len(observations),
-        "state_changes": [e.to_dict() for e in changed],
-    }, indent=2))
+    changed = [
+        e
+        for e in sim.world.events
+        if e.type in ("state_changed", "observation_conflict")
+    ]
+    print(
+        json.dumps(
+            {
+                "observations": len(observations),
+                "state_changes": [e.to_dict() for e in changed],
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -194,18 +213,21 @@ def cmd_act(args: argparse.Namespace) -> int:
     params = {}
     for item in args.param or []:
         if "=" not in item:
-            print(f"error: --param must be k=v, got {item!r}",
-                  file=sys.stderr)
+            print(f"error: --param must be k=v, got {item!r}", file=sys.stderr)
             return 1
         k, v = item.split("=", 1)
         params[k] = v
     try:
         action = sim.engine.run(
-            args.type, args.actor, args.target, params,
-            approved_by=args.approve_as, provenance="cli")
+            args.type,
+            args.actor,
+            args.target,
+            params,
+            approved_by=args.approve_as,
+            provenance="cli",
+        )
     except ValueError as exc:
-        print(json.dumps({"type": "action_rejected",
-                          "reason": str(exc)}, indent=2))
+        print(json.dumps({"type": "action_rejected", "reason": str(exc)}, indent=2))
         return 1
     if args.save:
         JsonFileWorldStore().save(sim.world, args.save)
@@ -229,6 +251,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
 def cmd_to_geojson(args: argparse.Namespace) -> int:
     from reality.infra.geojson import world_to_geojson_str
+
     world = _load_world(args.world)
     text = world_to_geojson_str(world.spatial)
     if args.out:
@@ -242,9 +265,10 @@ def cmd_to_geojson(args: argparse.Namespace) -> int:
 
 def cmd_from_geojson(args: argparse.Namespace) -> int:
     from reality.infra.geojson import load_geojson
+
     try:
         spatial = load_geojson(args.geojson)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 -- CLI reports clean errors for any load failure
         print(f"error: {exc}", file=sys.stderr)
         return 1
     problems = validate_world(spatial)
@@ -259,24 +283,28 @@ def cmd_from_geojson(args: argparse.Namespace) -> int:
         JsonFileWorldStore().save(world, args.out)
         print(f"wrote {args.out}")
     else:
-        print(f"valid: {len(spatial.zones)} zones, "
-              f"{len(spatial.entities)} entities")
+        print(f"valid: {len(spatial.zones)} zones, {len(spatial.entities)} entities")
     return 0
 
 
 # -- human rendering ---------------------------------------------------------
 
+
 def _render_human(ans: dict) -> str:
     t = ans.get("type")
     if t == "entity_location":
         e = ans["entity"]
-        return (f"{e['name']} ({e['id']}) is in "
-                f"{ans.get('zone_name') or ans.get('zone_id') or 'unknown zone'}. "
-                f"State: {json.dumps(e.get('state', {}))}")
+        return (
+            f"{e['name']} ({e['id']}) is in "
+            f"{ans.get('zone_name') or ans.get('zone_id') or 'unknown zone'}. "
+            f"State: {json.dumps(e.get('state', {}))}"
+        )
     if t == "entity_status":
         e = ans["entity"]
-        return (f"{e['name']}: {json.dumps(e.get('state', {}))} "
-                f"[{len(ans.get('recent_changes', []))} recent changes]")
+        return (
+            f"{e['name']}: {json.dumps(e.get('state', {}))} "
+            f"[{len(ans.get('recent_changes', []))} recent changes]"
+        )
     if t == "state_explanation":
         e = ans["entity"]
         lines = [f"{e['name']} state: {json.dumps(e.get('state', {}))}"]
@@ -296,16 +324,20 @@ def _render_human(ans: dict) -> str:
     if t == "evidence":
         ev = ans["evidence"] or {}
         sub = ev.get("evidence") or {}
-        return (f"Belief: {ev.get('entity_id')}.{ev.get('attribute')} = "
-                f"{ev.get('value')!r} (consistent with claim: "
-                f"{ev.get('consistent')}). Source: {sub.get('source')}, "
-                f"confidence {sub.get('confidence')}, "
-                f"observation {sub.get('observation_id')}.")
+        return (
+            f"Belief: {ev.get('entity_id')}.{ev.get('attribute')} = "
+            f"{ev.get('value')!r} (consistent with claim: "
+            f"{ev.get('consistent')}). Source: {sub.get('source')}, "
+            f"confidence {sub.get('confidence')}, "
+            f"observation {sub.get('observation_id')}."
+        )
     if t == "capabilities":
         lines = ["Available actions:"]
         for a in ans.get("available", []):
-            lines.append(f"  - {a['action']} on {a['entity_id']} "
-                         f"(params: {', '.join(a['params']) or 'none'})")
+            lines.append(
+                f"  - {a['action']} on {a['entity_id']} "
+                f"(params: {', '.join(a['params']) or 'none'})"
+            )
         return "\n".join(lines) or "no actions available"
     if t == "action_plan":
         steps = ans.get("plan", [])
@@ -318,8 +350,10 @@ def _render_human(ans: dict) -> str:
     if t == "action_result":
         a = ans["action"]
         v = (a.get("verification") or {}).get("status")
-        out = [f"Action {a['id']} ({a['type']} on {a['target']}): "
-               f"{a['status']}" + (f" (verification: {v})" if v else "")]
+        out = [
+            f"Action {a['id']} ({a['type']} on {a['target']}): "
+            f"{a['status']}" + (f" (verification: {v})" if v else "")
+        ]
         for d in (a.get("verification") or {}).get("discrepancies", []):
             out.append(f"  discrepancy: {d}")
         return "\n".join(out)
@@ -329,9 +363,13 @@ def _render_human(ans: dict) -> str:
     if t == "action_rejected":
         return f"Action rejected: {ans.get('reason')}"
     if t == "workstation_plan":
-        lines = [f"Chosen: {ans['chosen']['name']} "
-                  f"({ans['chosen']['id']}, {ans['distance_to_team']}m from "
-                  f"{ans['team']})"]
+        lines = [
+            (
+                f"Chosen: {ans['chosen']['name']} "
+                f"({ans['chosen']['id']}, {ans['distance_to_team']}m from "
+                f"{ans['team']})"
+            )
+        ]
         for s in ans["plan"]:
             blocked = " BLOCKED" if s.get("blocked") else ""
             lines.append(f"  - {s['action']} {s['target']}{blocked}")
@@ -350,10 +388,12 @@ def _render_human(ans: dict) -> str:
 
 # -- parser --------------------------------------------------------------------
 
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="reality",
-        description="REALITY: action/state layer for AI in the physical world")
+        description="REALITY: action/state layer for AI in the physical world",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("validate", help="validate a world JSON file")
@@ -364,8 +404,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("world")
     p.add_argument("question")
     p.add_argument("--format", choices=["json", "human"], default="json")
-    p.add_argument("--approve-as", default=None,
-                   help="run actions under this approver's authority")
+    p.add_argument(
+        "--approve-as", default=None, help="run actions under this approver's authority"
+    )
     p.set_defaults(func=cmd_ask)
 
     p = sub.add_parser("route", help="shortest zone path between two zones")
@@ -403,11 +444,17 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("act", help="run the full action lifecycle")
     p.add_argument("world")
-    p.add_argument("type", help="move_entity, reserve_resource, "
-                                "change_status, assign_entity, notify")
+    p.add_argument(
+        "type",
+        help="move_entity, reserve_resource, change_status, assign_entity, notify",
+    )
     p.add_argument("target", help="entity id")
-    p.add_argument("--param", action="append", default=[],
-                   help="action parameter as k=v (repeatable)")
+    p.add_argument(
+        "--param",
+        action="append",
+        default=[],
+        help="action parameter as k=v (repeatable)",
+    )
     p.add_argument("--actor", default="cli")
     p.add_argument("--approve-as", default=None)
     p.add_argument("--save", default=None)
@@ -422,18 +469,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("world", nargs="?", default="examples/warehouse.json")
     p.set_defaults(func=cmd_demo)
 
-    p = sub.add_parser("to-geojson",
-                       help="export the spatial substrate as GeoJSON")
+    p = sub.add_parser("to-geojson", help="export the spatial substrate as GeoJSON")
     p.add_argument("world")
-    p.add_argument("--out", default=None,
-                   help="write to this file instead of stdout")
+    p.add_argument("--out", default=None, help="write to this file instead of stdout")
     p.set_defaults(func=cmd_to_geojson)
 
-    p = sub.add_parser("from-geojson",
-                       help="import a GeoJSON FeatureCollection as a world")
+    p = sub.add_parser(
+        "from-geojson", help="import a GeoJSON FeatureCollection as a world"
+    )
     p.add_argument("geojson")
-    p.add_argument("--out", default=None,
-                   help="save the imported world to this JSON file")
+    p.add_argument(
+        "--out", default=None, help="save the imported world to this JSON file"
+    )
     p.set_defaults(func=cmd_from_geojson)
 
     args = parser.parse_args(argv)

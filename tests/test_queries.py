@@ -140,8 +140,9 @@ def test_ask_history(observed_sim):
 
 
 def test_ask_evidence(observed_sim):
-    ans = ask_world(observed_sim.world,
-                    "what evidence supports p17 being in storage-a?")
+    ans = ask_world(
+        observed_sim.world, "what evidence supports p17 being in storage-a?"
+    )
     assert ans["type"] == "evidence"
     assert ans["evidence"]["consistent"] is True
     assert ans["evidence"]["evidence"]["source"] == "sim-camera-1"
@@ -156,8 +157,9 @@ def test_ask_capabilities(observed_sim):
 
 def test_ask_move_executes_with_runtime_and_approval(observed_sim):
     sim = observed_sim
-    ans = ask_world(sim.world, "move p17 to storage-b", runtime=sim,
-                    approved_by="tester")
+    ans = ask_world(
+        sim.world, "move p17 to storage-b", runtime=sim, approved_by="tester"
+    )
     assert ans["type"] == "action_result"
     assert ans["action"]["status"] == "verified"
     assert ans["action"]["authorization"]["approved_by"] == "tester"
@@ -191,6 +193,7 @@ def test_ask_verify_action(observed_sim):
 
 def test_ask_workstation_plan_only(office_data):
     from reality.infra.simulation import Simulation
+
     sim = Simulation(office_data)
     sim.observe()
     ans = ask_world(sim.world, "find available workstation near finance team")
@@ -201,12 +204,14 @@ def test_ask_workstation_plan_only(office_data):
 
 def test_ask_workstation_prepare_executes(office_data):
     from reality.infra.simulation import Simulation
+
     sim = Simulation(office_data)
     sim.observe()
-    ans = ask_world(sim.world,
-                    "find available workstation near finance team "
-                    "and prepare it for rosario",
-                    runtime=sim)
+    ans = ask_world(
+        sim.world,
+        "find available workstation near finance team and prepare it for rosario",
+        runtime=sim,
+    )
     assert ans["type"] == "workstation_plan"
     executed = [e for e in ans["execution"] if isinstance(e, dict)]
     assert all(e["status"] == "verified" for e in executed)
@@ -215,8 +220,7 @@ def test_ask_workstation_prepare_executes(office_data):
 
 
 def test_ask_fallback_to_spatial(observed_sim):
-    ans = ask_world(observed_sim.world,
-                    "how do i get from receiving to storage-b")
+    ans = ask_world(observed_sim.world, "how do i get from receiving to storage-b")
     assert ans["type"] == "route"
     assert ans["path"][0] == "receiving"
     assert ans["path"][-1] == "storage-b"

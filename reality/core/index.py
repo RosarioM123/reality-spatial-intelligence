@@ -13,7 +13,7 @@ positions change — like any index, it is only as fresh as its last write.
 from __future__ import annotations
 
 import math
-from typing import Iterable
+from collections.abc import Iterable
 
 from reality.core.models import Point
 
@@ -29,9 +29,7 @@ def bounds_for(points: Iterable[Point], pad: float = 1.0) -> Bounds:
     return (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
 
 
-def _bounds_intersect_circle(
-    bounds: Bounds, center: Point, radius: float
-) -> bool:
+def _bounds_intersect_circle(bounds: Bounds, center: Point, radius: float) -> bool:
     closest_x = min(max(center.x, bounds[0]), bounds[2])
     closest_y = min(max(center.y, bounds[1]), bounds[3])
     return math.hypot(center.x - closest_x, center.y - closest_y) <= radius
@@ -42,11 +40,16 @@ def _bounds_intersect_bounds(a: Bounds, b: Bounds) -> bool:
 
 
 class _Node:
-    __slots__ = ("bounds", "capacity", "max_depth", "depth",
-                 "points", "children")
+    __slots__ = (
+        "bounds",
+        "capacity",
+        "children",
+        "depth",
+        "max_depth",
+        "points",
+    )
 
-    def __init__(self, bounds: Bounds, capacity: int,
-                 max_depth: int, depth: int):
+    def __init__(self, bounds: Bounds, capacity: int, max_depth: int, depth: int):
         self.bounds = bounds
         self.capacity = capacity
         self.max_depth = max_depth
@@ -57,8 +60,11 @@ class _Node:
     def _subdivide(self) -> None:
         min_x, min_y, max_x, max_y = self.bounds
         mid_x, mid_y = (min_x + max_x) / 2.0, (min_y + max_y) / 2.0
-        kw = dict(capacity=self.capacity, max_depth=self.max_depth,
-                  depth=self.depth + 1)
+        kw = {
+            "capacity": self.capacity,
+            "max_depth": self.max_depth,
+            "depth": self.depth + 1,
+        }
         self.children = [
             _Node((min_x, min_y, mid_x, mid_y), **kw),  # SW
             _Node((mid_x, min_y, max_x, mid_y), **kw),  # SE
@@ -106,7 +112,9 @@ class _Node:
         return False
 
     def query_radius(
-        self, center: Point, radius: float,
+        self,
+        center: Point,
+        radius: float,
         out: list[tuple[str, float]],
     ) -> None:
         if not _bounds_intersect_circle(self.bounds, center, radius):
@@ -123,8 +131,7 @@ class _Node:
         if not _bounds_intersect_bounds(self.bounds, bbox):
             return
         for entity_id, point in self.points:
-            if (bbox[0] <= point.x <= bbox[2]
-                    and bbox[1] <= point.y <= bbox[3]):
+            if bbox[0] <= point.x <= bbox[2] and bbox[1] <= point.y <= bbox[3]:
                 out.append(entity_id)
         if self.children is not None:
             for child in self.children:
@@ -145,8 +152,7 @@ class Quadtree:
         hits = tree.query_radius(Point(x, y), radius)  # [(id, dist)]
     """
 
-    def __init__(self, bounds: Bounds, capacity: int = 8,
-                 max_depth: int = 16):
+    def __init__(self, bounds: Bounds, capacity: int = 8, max_depth: int = 16):
         min_x, min_y, max_x, max_y = bounds
         if not (min_x < max_x and min_y < max_y):
             raise ValueError(f"bounds must have positive area, got {bounds!r}")
@@ -167,8 +173,7 @@ class Quadtree:
         min_x, min_y, max_x, max_y = self.bounds
         if not (min_x <= point.x <= max_x and min_y <= point.y <= max_y):
             raise ValueError(
-                f"point ({point.x}, {point.y}) outside tree bounds "
-                f"{self.bounds!r}"
+                f"point ({point.x}, {point.y}) outside tree bounds {self.bounds!r}"
             )
         if entity_id in self._positions:
             self.remove(entity_id)

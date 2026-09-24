@@ -17,7 +17,8 @@ applied to the world.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from reality.core import constraints as constraint_checks
 from reality.core.models import (
@@ -34,7 +35,6 @@ from reality.core.models import (
     Observation,
 )
 from reality.core.verification import (
-    FAILED,
     PARTIALLY_VERIFIED,
     VERIFIED,
     verify_action,
@@ -192,7 +192,7 @@ class ActionEngine:
         action.status = ACTION_EXECUTING
         try:
             report = self.executor.execute(action)
-        except Exception as exc:  # executors must not take the engine down
+        except Exception as exc:  # noqa: BLE001 -- executors must not take the engine down
             report = {"success": False, "message": f"executor error: {exc}"}
         action.executor_report = dict(report)
         action.executed_at = self.world.now()
@@ -247,18 +247,16 @@ class ActionEngine:
     def verify(self, action: Action):
         """Compare expected vs observed state; finalize the action."""
         if action.status not in (ACTION_OBSERVED, ACTION_EXECUTED):
-            raise ValueError(
-                f"cannot verify action in status {action.status!r}"
-            )
+            raise ValueError(f"cannot verify action in status {action.status!r}")
         result = verify_action(action, self.world, self.world.now())
         action.verification = result.to_dict()
         action.verified_at = self.world.now()
         # Record what actually happened, per attribute.
         actual: dict[str, dict[str, Any]] = {}
         for check in result.checked:
-            actual.setdefault(check["entity_id"], {})[check["attribute"]] = (
-                check["actual"]
-            )
+            actual.setdefault(check["entity_id"], {})[check["attribute"]] = check[
+                "actual"
+            ]
         action.actual_effect = actual
         if result.status == VERIFIED:
             action.status = ACTION_VERIFIED
@@ -323,9 +321,7 @@ class ActionEngine:
                 notes = []
                 for constraint in self.world.constraints:
                     if action_type in constraint.applies_to:
-                        notes.append(
-                            f"{constraint.kind}: {constraint.description}"
-                        )
+                        notes.append(f"{constraint.kind}: {constraint.description}")
                 out.append(
                     {
                         "entity_id": entity.id,

@@ -1,7 +1,5 @@
 """Geometry unit tests."""
 
-import math
-
 import pytest
 
 from reality.core.geometry import (

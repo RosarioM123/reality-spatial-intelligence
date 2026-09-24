@@ -1,6 +1,7 @@
 # Transport layer abstraction for Reality.
 # This file intentionally contains only placeholders for the open-source version.
 
+
 class Transport:
     """
     Base transport interface for sending scene graph updates or telemetry
@@ -32,4 +33,3 @@ class Transport:
         TODO: Add graceful shutdown and cleanup.
         """
         raise NotImplementedError
-

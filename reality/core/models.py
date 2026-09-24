@@ -18,7 +18,7 @@ class Point:
         return [self.x, self.y, self.z]
 
     @staticmethod
-    def from_list(values: list[float]) -> "Point":
+    def from_list(values: list[float]) -> Point:
         if len(values) == 2:
             x, y = values
             z = 0.0
@@ -49,7 +49,7 @@ class Zone:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Zone":
+    def from_dict(data: dict[str, Any]) -> Zone:
         return Zone(
             id=str(data["id"]),
             name=str(data.get("name", data["id"])),
@@ -94,7 +94,7 @@ class Entity:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Entity":
+    def from_dict(data: dict[str, Any]) -> Entity:
         return Entity(
             id=str(data["id"]),
             name=str(data.get("name", data["id"])),
@@ -127,7 +127,7 @@ class SpatialWorld:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "SpatialWorld":
+    def from_dict(data: dict[str, Any]) -> SpatialWorld:
         zones = {z["id"]: Zone.from_dict(z) for z in data.get("zones", [])}
         entities = {e["id"]: Entity.from_dict(e) for e in data.get("entities", [])}
         adjacency = {k: list(v) for k, v in data.get("adjacency", {}).items()}
@@ -160,7 +160,7 @@ class Provenance:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Provenance":
+    def from_dict(data: dict[str, Any]) -> Provenance:
         return Provenance(
             observed_at=float(data["observed_at"]),
             source=str(data["source"]),
@@ -184,13 +184,11 @@ class Relationship:
             "subject_id": self.subject_id,
             "predicate": self.predicate,
             "object_id": self.object_id,
-            "provenance": self.provenance.to_dict()
-            if self.provenance
-            else None,
+            "provenance": self.provenance.to_dict() if self.provenance else None,
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Relationship":
+    def from_dict(data: dict[str, Any]) -> Relationship:
         prov = data.get("provenance")
         return Relationship(
             subject_id=str(data["subject_id"]),
@@ -226,7 +224,7 @@ class Observation:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Observation":
+    def from_dict(data: dict[str, Any]) -> Observation:
         return Observation(
             id=str(data["id"]),
             ts=float(data["ts"]),
@@ -249,7 +247,9 @@ class Event:
     type: str  # observation_recorded, state_changed, action_proposed, ...
     entity_id: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
-    caused_by: dict[str, str] | None = None  # {"kind": "observation"|"action", "id": ...}
+    caused_by: dict[str, str] | None = (
+        None  # {"kind": "observation"|"action", "id": ...}
+    )
     actor: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -264,7 +264,7 @@ class Event:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Event":
+    def from_dict(data: dict[str, Any]) -> Event:
         return Event(
             id=str(data["id"]),
             ts=float(data["ts"]),
@@ -306,7 +306,9 @@ class Action:
     target: str  # entity id the action operates on
     parameters: dict[str, Any] = field(default_factory=dict)
     status: str = ACTION_PROPOSED
-    authorization: dict[str, Any] | None = None  # {"approved_by": ..., "approved_at": ...}
+    authorization: dict[str, Any] | None = (
+        None  # {"approved_by": ..., "approved_at": ...}
+    )
     created_at: float = 0.0
     authorized_at: float | None = None
     executed_at: float | None = None
@@ -342,7 +344,7 @@ class Action:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Action":
+    def from_dict(data: dict[str, Any]) -> Action:
         return Action(
             id=str(data["id"]),
             type=str(data["type"]),
@@ -394,7 +396,7 @@ class Constraint:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Constraint":
+    def from_dict(data: dict[str, Any]) -> Constraint:
         return Constraint(
             id=str(data["id"]),
             name=str(data.get("name", data["id"])),

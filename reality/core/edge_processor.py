@@ -1,15 +1,19 @@
+import time
+from typing import Any
+
 import cv2
 import numpy as np
-from typing import List, Dict, Any
+
 from ..config import settings
 from .scene_graph import SceneGraph
+
 
 class EdgeFrameProcessor:
     def __init__(self):
         self.frame_id = 0
         self.detector = cv2.ORB_create(nfeatures=settings.MAX_KEYPOINTS)
 
-    def extract_keypoints(self, frame: np.ndarray) -> List[Dict[str, Any]]:
+    def extract_keypoints(self, frame: np.ndarray) -> list[dict[str, Any]]:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         keypoints, _ = self.detector.detectAndCompute(gray, None)
 

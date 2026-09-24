@@ -47,9 +47,7 @@ def zone_to_feature(zone: Zone) -> dict[str, Any]:
         "type": "Feature",
         "geometry": {
             "type": "Polygon",
-            "coordinates": [
-                _close_ring([_position(p) for p in zone.polygon])
-            ],
+            "coordinates": [_close_ring([_position(p) for p in zone.polygon])],
         },
         "properties": {
             "kind": "zone",
@@ -106,8 +104,9 @@ def _parse_positions(coords: Any, what: str) -> list[Point]:
             f"{what}: each position needs 2 or 3 numbers, got {c!r}",
         )
         try:
-            points.append(Point(float(c[0]), float(c[1]),
-                                float(c[2]) if len(c) == 3 else 0.0))
+            points.append(
+                Point(float(c[0]), float(c[1]), float(c[2]) if len(c) == 3 else 0.0)
+            )
         except (TypeError, ValueError):
             raise GeoJSONError(
                 f"{what}: position coordinates must be numbers, got {c!r}"
@@ -119,16 +118,19 @@ def _feature_zone(feature: dict, index: int) -> Zone:
     what = f"feature #{index}"
     props = feature.get("properties") or {}
     geom = feature.get("geometry") or {}
-    _require(geom.get("type") == "Polygon",
-             f"{what}: zone feature needs Polygon geometry")
+    _require(
+        geom.get("type") == "Polygon", f"{what}: zone feature needs Polygon geometry"
+    )
     rings = geom.get("coordinates")
-    _require(isinstance(rings, list) and len(rings) >= 1,
-             f"{what}: Polygon needs at least one ring")
+    _require(
+        isinstance(rings, list) and len(rings) >= 1,
+        f"{what}: Polygon needs at least one ring",
+    )
+    assert isinstance(rings, list)  # narrowed by _require above; for mypy
     ring = list(rings[0])
     if len(ring) >= 2 and ring[0] == ring[-1]:
         ring = ring[:-1]  # drop the GeoJSON closing duplicate
-    _require(len(ring) >= 3,
-             f"{what}: zone polygon needs at least 3 distinct points")
+    _require(len(ring) >= 3, f"{what}: zone polygon needs at least 3 distinct points")
     _require("id" in props, f"{what}: zone feature needs properties.id")
     return Zone(
         id=str(props["id"]),
@@ -143,8 +145,9 @@ def _feature_entity(feature: dict, index: int) -> Entity:
     what = f"feature #{index}"
     props = feature.get("properties") or {}
     geom = feature.get("geometry") or {}
-    _require(geom.get("type") == "Point",
-             f"{what}: entity feature needs Point geometry")
+    _require(
+        geom.get("type") == "Point", f"{what}: entity feature needs Point geometry"
+    )
     _require("id" in props, f"{what}: entity feature needs properties.id")
     return Entity(
         id=str(props["id"]),
@@ -165,26 +168,27 @@ def geojson_to_world(data: dict[str, Any]) -> SpatialWorld:
     ids; duplicate ids raise GeoJSONError.
     """
     _require(isinstance(data, dict), "GeoJSON must be a JSON object")
-    _require(data.get("type") == GEOJSON_TYPE,
-             f"GeoJSON type must be {GEOJSON_TYPE!r}")
+    _require(data.get("type") == GEOJSON_TYPE, f"GeoJSON type must be {GEOJSON_TYPE!r}")
     features = data.get("features")
     _require(isinstance(features, list), "GeoJSON needs a features list")
+    assert isinstance(features, list)  # narrowed by _require above; for mypy
 
     world = SpatialWorld()
     for i, feature in enumerate(features):
         _require(isinstance(feature, dict), f"feature #{i} must be an object")
-        _require(feature.get("type") == "Feature",
-                 f"feature #{i} must have type 'Feature'")
+        _require(
+            feature.get("type") == "Feature", f"feature #{i} must have type 'Feature'"
+        )
         kind = (feature.get("properties") or {}).get("kind")
         if kind == "zone":
             zone = _feature_zone(feature, i)
-            _require(zone.id not in world.zones,
-                     f"duplicate zone id {zone.id!r}")
+            _require(zone.id not in world.zones, f"duplicate zone id {zone.id!r}")
             world.zones[zone.id] = zone
         elif kind == "entity":
             entity = _feature_entity(feature, i)
-            _require(entity.id not in world.entities,
-                     f"duplicate entity id {entity.id!r}")
+            _require(
+                entity.id not in world.entities, f"duplicate entity id {entity.id!r}"
+            )
             world.entities[entity.id] = entity
         else:
             raise GeoJSONError(
@@ -195,8 +199,7 @@ def geojson_to_world(data: dict[str, Any]) -> SpatialWorld:
     member = data.get(_REAILITY_MEMBER) or {}
     adjacency = member.get("adjacency", {})
     _require(isinstance(adjacency, dict), "'reality.adjacency' must be an object")
-    world.adjacency = {str(k): [str(n) for n in v]
-                       for k, v in adjacency.items()}
+    world.adjacency = {str(k): [str(n) for n in v] for k, v in adjacency.items()}
     return world
 
 

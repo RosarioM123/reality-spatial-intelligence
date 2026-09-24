@@ -44,12 +44,11 @@ class VerificationResult:
             "verified_at": self.verified_at,
             "notes": self.notes,
             # Observation ids the verification actually rested on.
-            "evidence_ids": [c["evidence"] for c in self.checked
-                             if c.get("evidence")],
+            "evidence_ids": [c["evidence"] for c in self.checked if c.get("evidence")],
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "VerificationResult":
+    def from_dict(data: dict[str, Any]) -> VerificationResult:
         return VerificationResult(
             action_id=str(data["action_id"]),
             status=str(data["status"]),
@@ -75,8 +74,7 @@ def _values_equal(expected: Any, actual: Any) -> bool:
 
 def verify_action(action: Action, world, ts: float) -> VerificationResult:
     """Compare the action's expected effect with believed world state."""
-    result = VerificationResult(action_id=action.id, status=UNKNOWN,
-                                verified_at=ts)
+    result = VerificationResult(action_id=action.id, status=UNKNOWN, verified_at=ts)
 
     if not action.expected_effect:
         result.status = VERIFIED

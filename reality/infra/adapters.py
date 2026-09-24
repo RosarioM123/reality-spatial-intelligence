@@ -46,17 +46,14 @@ class ActionExecutor(abc.ABC):
     """
 
     @abc.abstractmethod
-    def execute(self, action: Action) -> dict[str, Any]:
-        ...
+    def execute(self, action: Action) -> dict[str, Any]: ...
 
 
 class WorldStateStore(abc.ABC):
     """Persistence for whole world snapshots."""
 
     @abc.abstractmethod
-    def save(self, world: RealityWorld, path: str) -> None:
-        ...
+    def save(self, world: RealityWorld, path: str) -> None: ...
 
     @abc.abstractmethod
-    def load(self, path: str) -> RealityWorld:
-        ...
+    def load(self, path: str) -> RealityWorld: ...

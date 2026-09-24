@@ -42,8 +42,14 @@ def test_query_bbox():
 
 def test_border_points_are_never_lost():
     # Points exactly on subdivision borders must stay queryable.
-    pts = [Point(0, 0), Point(50, 0), Point(100, 0),
-           Point(0, 50), Point(50, 50), Point(100, 50)]
+    pts = [
+        Point(0, 0),
+        Point(50, 0),
+        Point(100, 0),
+        Point(0, 50),
+        Point(50, 50),
+        Point(100, 50),
+    ]
     tree = Quadtree((0, 0, 100, 50), capacity=1)
     for k, p in enumerate(pts):
         tree.insert(f"e{k}", p)
@@ -97,26 +103,31 @@ def test_matches_brute_force():
         c = Point(rng.uniform(0, 500), rng.uniform(0, 500))
         r = rng.uniform(1, 60)
         got = {eid for eid, _ in tree.query_radius(c, r)}
-        want = {f"e{k}" for k, p in enumerate(pts)
-                if (p.x - c.x) ** 2 + (p.y - c.y) ** 2 <= r ** 2}
+        want = {
+            f"e{k}"
+            for k, p in enumerate(pts)
+            if (p.x - c.x) ** 2 + (p.y - c.y) ** 2 <= r**2
+        }
         assert got == want
 
 
 def test_quadtree_beats_brute_force():
     """Benchmark: indexed radius queries beat a full scan on 3000 entities."""
     rng = random.Random(7)
-    pts = [Point(rng.uniform(0, 1000), rng.uniform(0, 1000))
-           for _ in range(3000)]
+    pts = [Point(rng.uniform(0, 1000), rng.uniform(0, 1000)) for _ in range(3000)]
     tree = Quadtree(bounds_for(pts))
     for k, p in enumerate(pts):
         tree.insert(f"e{k}", p)
-    queries = [(Point(rng.uniform(0, 1000), rng.uniform(0, 1000)),
-                rng.uniform(5, 40)) for _ in range(100)]
+    queries = [
+        (Point(rng.uniform(0, 1000), rng.uniform(0, 1000)), rng.uniform(5, 40))
+        for _ in range(100)
+    ]
 
     def brute(center, radius):
-        r2 = radius ** 2
+        r2 = radius**2
         return sorted(
-            eid for eid, p in enumerate(pts)
+            eid
+            for eid, p in enumerate(pts)
             if (p.x - center.x) ** 2 + (p.y - center.y) ** 2 <= r2
         )
 
@@ -132,8 +143,10 @@ def test_quadtree_beats_brute_force():
 
     # Correctness on the benchmark queries too.
     for c, r in queries[:10]:
-        assert {eid for eid, _ in tree.query_radius(c, r)} == \
-            {f"e{e}" for e in brute(c, r)}
+        assert {eid for eid, _ in tree.query_radius(c, r)} == {
+            f"e{e}" for e in brute(c, r)
+        }
 
-    assert qt_time < brute_time, \
+    assert qt_time < brute_time, (
         f"quadtree ({qt_time:.3f}s) not faster than brute force ({brute_time:.3f}s)"
+    )

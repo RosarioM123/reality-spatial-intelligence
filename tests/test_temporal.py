@@ -4,9 +4,14 @@ from reality.core.models import Observation
 
 
 def _obs(world, entity_id, state, ts, source="test-cam", confidence=0.9):
-    return Observation(id=world.new_id("obs"), ts=ts, source=source,
-                       entity_id=entity_id, observed_state=state,
-                       confidence=confidence)
+    return Observation(
+        id=world.new_id("obs"),
+        ts=ts,
+        source=source,
+        entity_id=entity_id,
+        observed_state=state,
+        confidence=confidence,
+    )
 
 
 def test_history_tracks_transitions(observed_sim):
