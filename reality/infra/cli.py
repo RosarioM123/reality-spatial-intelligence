@@ -22,6 +22,7 @@ import argparse
 import json
 import sys
 
+from reality import __version__
 from reality.core.models import Point
 from reality.core.pipeline import (
     SpatialPipeline,
@@ -393,6 +394,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="reality",
         description="REALITY: action/state layer for AI in the physical world",
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

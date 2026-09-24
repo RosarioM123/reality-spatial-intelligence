@@ -23,6 +23,8 @@ class WorldValidationError(ValueError):
 def validate_world(world: SpatialWorld) -> list[str]:
     """Return a list of validation problems (empty means valid)."""
     problems: list[str] = []
+    if not world.zones:
+        problems.append("world has no zones (empty world)")
     for zid, zone in world.zones.items():
         if len(zone.polygon) < 3:
             problems.append(f"zone {zid!r} has fewer than 3 polygon points")
