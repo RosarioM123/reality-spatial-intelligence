@@ -38,7 +38,8 @@ pip install -e .
 reality demo   # the executable thesis: a warehouse run with a success AND a caught lie
 reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
 reality fleet examples/fleet.json --detail  # fleet ops: robots, capabilities, battery
-pytest         # 141 tests, ~0.3s, no network, no randomness
+python examples/field_ops_demo.py  # end-to-end: mission -> fleet tasks -> telemetry
+pytest         # 160 tests, ~0.3s, no network, no randomness
 ```
 
 ## Fleet operations
@@ -60,6 +61,31 @@ print(task.assigned_robot)  # r-hauler-1 — the only robot that can tow
 print(fleet.fleet_status())
 # {'robot_count': 4, 'robots_by_status': {'idle': 3, 'charging': 1}, ...}
 ```
+
+## Telemetry: are my machines okay?
+
+`reality/core/telemetry.py` tracks heartbeats from every robot and
+escalates: `ok` → `degraded` (stale) → `critical` → `lost`. Out-of-order
+beats don't regress the last-seen pointer.
+
+```python
+from reality.core.telemetry import Heartbeat, TelemetryMonitor
+import time
+
+monitor = TelemetryMonitor(stale_after=30.0)
+monitor.ingest(Heartbeat("r1", time.time(), battery=88.0, zone_id="depot"))
+print(monitor.fleet_health(["r1", "r2"])["needs_attention"])  # ['r2'] — never checked in
+```
+
+## WORLD → REALITY bridge
+
+`reality/core/bridge.py` turns a WORLD mission (the persistent,
+versioned plan) into fleet tasks (the execution). No dependency on the
+WORLD package — it takes the mission state dict, keeping the authority
+boundary clean: WORLD owns the plan, REALITY owns the execution.
+
+`python examples/field_ops_demo.py` runs the whole loop: mission →
+tasks → assignment → telemetry → mission rollup.
 
 ## The idea
 
