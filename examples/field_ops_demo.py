@@ -1,15 +1,15 @@
-"""End-to-end: WORLD mission -> REALITY fleet -> telemetry.
-
-This demo runs the full operating-layer story without the WORLD package
-installed — it uses a mission state dict in the shape WORLD produces
-(see world/examples/fleet_mission/ for the WORLD half).
+"""Field operations demo: the full operating-layer loop.
 
     python examples/field_ops_demo.py
 
-What it shows:
-1. A mission (WORLD's output) materializes into fleet tasks via the bridge.
-2. The fleet manager assigns tasks to robots by capability + proximity.
-3. Robots report heartbeats; telemetry flags the one that goes dark.
+1. A mission arrives from WORLD -> bridge materializes fleet tasks.
+2. Fleet manager assigns tasks by capability + proximity.
+3. Robots report heartbeats; telemetry detects the dark ones.
+4. Detections become tracked incidents (deduped, escalated, resolved).
+5. Mission rollup goes back to WORLD.
+
+This is the "operating layer for machines in the field" in miniature:
+monitor -> detect -> track -> resolve, with the mission as source of truth.
 """
 
 import json
@@ -17,18 +17,32 @@ import time
 
 from reality.core.bridge import Bridge
 from reality.core.fleet import FleetManager
-from reality.core.telemetry import Heartbeat, TelemetryMonitor
+from reality.core.incidents import (
+    SEVERITY_CRITICAL,
+    SEVERITY_WARNING,
+    SOURCE_TELEMETRY,
+    IncidentManager,
+)
+from reality.core.telemetry import (
+    ALERT_CRITICAL,
+    ALERT_LOST,
+    Heartbeat,
+    TelemetryMonitor,
+)
 from reality.core.world import RealityWorld
+
+_ALERT_SEVERITY = {ALERT_CRITICAL: SEVERITY_CRITICAL, ALERT_LOST: SEVERITY_CRITICAL}
 
 
 def main() -> None:
-    # 1. Load the field. Robots are already registered in fleet.json.
     with open("examples/fleet.json", encoding="utf-8") as f:
         world = RealityWorld.from_dict(json.load(f))
     fleet = FleetManager(world)
+    monitor = TelemetryMonitor(stale_after=30.0)
+    incidents = IncidentManager()
     print(f"fleet loaded: {len(fleet.robots())} robots")
 
-    # 2. A mission arrives from WORLD (mission planner's output).
+    # 1-2. Mission -> tasks -> assignment.
     mission_state = {
         "objective": "Survey field-south, tow trailer to depot",
         "status": "planned",
@@ -47,40 +61,71 @@ def main() -> None:
             },
         ],
     }
-    tasks = Bridge(mission_state, fleet).materialize()
-    print(f"bridge: {len(tasks)} mission steps -> fleet tasks")
-
-    # 3. Assign. Capability + proximity decide.
+    bridge = Bridge(mission_state, fleet)
+    print(f"bridge: {len(bridge.materialize())} mission steps -> fleet tasks")
     for task in fleet.assign_all():
         print(f"  assigned {task.name!r} -> {task.assigned_robot}")
 
-    # 4. Robots report in. One goes dark.
+    # 3. Heartbeats in. Two robots go dark.
     now = time.time()
-    monitor = TelemetryMonitor(stale_after=30.0)
     monitor.ingest_many(
         [
-            Heartbeat("r-hauler-1", now - 5, battery=88.0, zone_id="depot",
-                      status="executing"),
-            Heartbeat("r-hauler-2", now - 12, battery=76.0,
-                      zone_id="field-north", status="idle"),
-            Heartbeat("r-scout-1", now - 300, battery=18.0,
-                      zone_id="field-south", status="idle"),
+            Heartbeat(
+                "r-hauler-1",
+                now - 5,
+                battery=88.0,
+                zone_id="depot",
+                status="executing",
+            ),
+            Heartbeat(
+                "r-hauler-2",
+                now - 12,
+                battery=76.0,
+                zone_id="field-north",
+                status="idle",
+            ),
+            Heartbeat(
+                "r-scout-1",
+                now - 300,
+                battery=18.0,
+                zone_id="field-south",
+                status="idle",
+            ),
             # r-scout-2 never checks in.
         ]
     )
-    health = monitor.fleet_health(
-        [r.id for r in fleet.robots()], now=now
-    )
+
+    # 4. Detections -> incidents (deduped by robot).
+    robot_ids = [r.id for r in fleet.robots()]
+    health = monitor.fleet_health(robot_ids, now=now)
     print("\ntelemetry:")
     for robot in health["robots"]:
-        age = robot["seconds_since_heartbeat"]
+        h = monitor.health(robot["robot_id"], now=now)
+        age = h.seconds_since_heartbeat
         age_s = f"{age:.0f}s ago" if age is not None else "never"
-        print(f"  {robot['robot_id']}: {robot['alert']} (last seen {age_s})")
-    if health["needs_attention"]:
-        print(f"needs attention: {', '.join(health['needs_attention'])}")
+        print(f"  {h.robot_id}: {h.alert} (last seen {age_s})")
+        if h.alert in _ALERT_SEVERITY:
+            incidents.raise_incident(
+                title=f"Robot {h.robot_id} {h.alert} (last seen {age_s})",
+                robot_id=h.robot_id,
+                source=SOURCE_TELEMETRY,
+                severity=_ALERT_SEVERITY[h.alert],
+                dedup_key=f"{h.robot_id}-dark",
+            )
 
-    # 5. Mission-level rollup for WORLD to persist.
-    print(f"\nmission rollup: {Bridge(mission_state, fleet).sync_status()}")
+    # Ops works the incident queue.
+    open_incs = incidents.open_incidents()
+    print(f"\nincidents: {len(open_incs)} open")
+    for inc in open_incs:
+        print(f"  [{inc.severity}] {inc.title}")
+    if open_incs:
+        first = open_incs[0]
+        incidents.acknowledge(first.id, actor="ops-lead", note="Dispatching recovery")
+        print(f"  acknowledged {first.id}")
+
+    # 5. Rollup for WORLD.
+    print(f"\nmission rollup: {bridge.sync_status()}")
+    print(f"incident summary: {incidents.summary()}")
 
 
 if __name__ == "__main__":

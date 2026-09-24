@@ -39,7 +39,7 @@ reality demo   # the executable thesis: a warehouse run with a success AND a cau
 reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
 reality fleet examples/fleet.json --detail  # fleet ops: robots, capabilities, battery
 python examples/field_ops_demo.py  # end-to-end: mission -> fleet tasks -> telemetry
-pytest         # 160 tests, ~0.3s, no network, no randomness
+pytest         # 170 tests, ~0.3s, no network, no randomness
 ```
 
 ## Fleet operations
@@ -85,7 +85,26 @@ WORLD package — it takes the mission state dict, keeping the authority
 boundary clean: WORLD owns the plan, REALITY owns the execution.
 
 `python examples/field_ops_demo.py` runs the whole loop: mission →
-tasks → assignment → telemetry → mission rollup.
+tasks → assignment → telemetry → incidents → mission rollup.
+
+## Incidents: from detection to resolution
+
+`reality/core/incidents.py` tracks what ops actually does all day:
+incidents move `open` → `acknowledged` → `resolved` with an append-only
+timeline. Telemetry alerts auto-raise incidents (deduped per robot, so
+a flapping robot doesn't spam the queue); severity escalates but never
+silently decreases.
+
+```python
+from reality.core.incidents import IncidentManager
+
+incidents = IncidentManager()
+inc = incidents.raise_incident("Robot r-scout-1 lost", robot_id="r-scout-1",
+                               source="telemetry", severity="critical",
+                               dedup_key="r-scout-1-dark")
+incidents.acknowledge(inc.id, actor="ops-lead", note="Dispatching recovery")
+incidents.resolve(inc.id, actor="ops-lead", note="Robot recovered at depot")
+```
 
 ## The idea
 
