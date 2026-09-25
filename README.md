@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml)
 
-**Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 124 tests green, zero third-party dependencies.**
+**Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 182 tests green, zero third-party dependencies.**
 
 > v0 is complete and validated. Active development is on the sibling project
 > [WORLD](https://github.com/RosarioM123/world-workstate-infrastructure)
@@ -300,7 +300,7 @@ reality/
   research/
     adjacent-tech.md   # honest survey: PostGIS, twins, ROS 2, HA, MCP, …
 examples/              # warehouse.json, office.json
-tests/                 # pytest suite (124 tests)
+tests/                 # pytest suite (182 tests)
 ```
 
 ### Earlier prototype modules
@@ -320,7 +320,7 @@ Optional environment variables: `REALITY_DATA_DIR`,
 ## Tests
 
 ```bash
-pytest                    # 124 tests, ~0.3s, no network, no randomness
+pytest                    # 182 tests, ~0.3s, no network, no randomness
 ```
 
 ## Visualizer
