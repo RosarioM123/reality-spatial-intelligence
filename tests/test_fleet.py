@@ -6,6 +6,7 @@ from reality.core.fleet import (
     ROBOT_CHARGING,
     ROBOT_FAULT,
     ROBOT_IDLE,
+    SOURCE_FLEET_MANAGER,
     TASK_ASSIGNED,
     TASK_CANCELLED,
     TASK_COMPLETED,
@@ -222,3 +223,37 @@ def test_task_to_dict():
     assert d["required_capabilities"] == ["lift_heavy"]
     assert d["priority"] == 5
     assert d["status"] == TASK_QUEUED
+
+
+def test_assign_goes_through_observation_channel():
+    """Assignments must not mutate entity.state directly — they are
+    observations, so they carry provenance."""
+    fleet = _fleet()
+    fleet.submit_task("t1", "Move pallet", {"lift_heavy"})
+    fleet.assign_next()
+
+    entity = fleet.world.spatial.entities["r1"]
+    assert entity.state["status"] == "assigned"
+    prov = entity.state_provenance.get("status")
+    assert prov is not None
+    assert prov.source == SOURCE_FLEET_MANAGER
+    assert prov.confidence == 1.0
+
+    obs = fleet.world.observations[-1]
+    assert obs.source == SOURCE_FLEET_MANAGER
+    assert obs.entity_id == "r1"
+    assert obs.observed_state["current_task"] == "t1"
+
+
+def test_release_goes_through_observation_channel():
+    fleet = _fleet()
+    fleet.submit_task("t1", "Move pallet", {"lift_heavy"})
+    fleet.assign_next()
+    fleet.release_robot("r1")
+
+    entity = fleet.world.spatial.entities["r1"]
+    assert entity.state["status"] == ROBOT_IDLE
+    assert entity.state.get("current_task") is None
+    prov = entity.state_provenance.get("status")
+    assert prov is not None
+    assert prov.source == SOURCE_FLEET_MANAGER

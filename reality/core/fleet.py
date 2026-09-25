@@ -13,12 +13,18 @@ coordination on top of the trusted primitives, it doesn't bypass them.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
 from reality.core import geometry as _geometry
-from reality.core.models import Entity, Point
+from reality.core.models import Entity, Observation, Point
 from reality.core.world import RealityWorld
+
+# Observation source for fleet-manager state changes. Assignments and
+# releases go through the observation channel like everything else, so
+# they carry provenance and confidence instead of bypassing them.
+SOURCE_FLEET_MANAGER = "fleet-manager"
 
 # Robot operational states. A robot is assignable only when idle.
 ROBOT_IDLE = "idle"
@@ -222,16 +228,43 @@ class FleetManager:
     def _assign(self, task: FleetTask, robot: Entity) -> None:
         task.status = TASK_ASSIGNED
         task.assigned_robot = robot.id
-        robot.state["status"] = ROBOT_ASSIGNED
-        robot.state["current_task"] = task.id
+        self._observe_robot(
+            robot.id,
+            {"status": ROBOT_ASSIGNED, "current_task": task.id},
+            context=f"assigned task {task.id} ({task.name})",
+        )
 
     def release_robot(self, robot_id: str) -> None:
         """Mark a robot idle again (e.g. after task completion)."""
         entity = self.world.spatial.entities.get(robot_id)
         if entity is None or entity.kind != "robot":
             raise KeyError(f"unknown robot {robot_id!r}")
-        entity.state["status"] = ROBOT_IDLE
-        entity.state.pop("current_task", None)
+        self._observe_robot(
+            robot_id,
+            {"status": ROBOT_IDLE, "current_task": None},
+            context="released from task",
+        )
+
+    def _observe_robot(
+        self, robot_id: str, observed_state: dict[str, Any], context: str = ""
+    ) -> None:
+        """Route a fleet state change through the observation channel.
+
+        The fleet manager never mutates entity.state directly — it reports
+        what should be true, and the world applies it with provenance,
+        confidence, and conflict handling like any other observation.
+        """
+        self.world.apply_observation(
+            Observation(
+                id=self.world.new_id("obs"),
+                ts=time.time(),
+                source=SOURCE_FLEET_MANAGER,
+                entity_id=robot_id,
+                observed_state=observed_state,
+                confidence=1.0,
+                context=context,
+            )
+        )
 
     def complete_task(self, task_id: str, success: bool = True) -> None:
         """Mark a task completed/failed and free its robot."""
