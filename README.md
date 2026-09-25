@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/RosarioM123/reality-spatial-intelligence/actions/workflows/ci.yml)
 
-**Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 182 tests green, zero third-party dependencies.**
+**Spatial Python engine with GeoJSON import/export, a quadtree spatial index, geofence enter/exit alerts, and a Vue.js + Sass visualizer — 189 tests green, zero third-party dependencies.**
 
 > v0 is complete and validated. Active development is on the sibling project
 > [WORLD](https://github.com/RosarioM123/world-workstate-infrastructure)
@@ -280,6 +280,12 @@ reality/
                        #   keeps its existing indexing behavior)
     geofence.py        # zone enter/exit detection over entity tracks
     pipeline.py        # spatial ingest → validate → index → query
+    fleet.py           # FleetManager: robots, capability-based task assignment
+    telemetry.py       # TelemetryMonitor: heartbeats, ok→degraded→critical→lost
+    bridge.py          # WORLD mission state → fleet tasks (no WORLD dependency)
+    incidents.py       # IncidentManager: open→acknowledged→resolved, timeline
+    zone_watch.py      # robots outside their assigned zone → violations
+    handover.py        # shift handover report for the incoming ops team
   infra/
     adapters.py        # ObservationSource / ActionExecutor / WorldStateStore
     geojson.py         # world ↔ GeoJSON FeatureCollection interchange
@@ -299,8 +305,10 @@ reality/
     design-decisions.md# why the core choices were made
   research/
     adjacent-tech.md   # honest survey: PostGIS, twins, ROS 2, HA, MCP, …
-examples/              # warehouse.json, office.json
-tests/                 # pytest suite (182 tests)
+examples/              # warehouse.json, office.json, fleet.json
+                       # field_ops_demo.py: mission → tasks → telemetry →
+                       #   incidents → handover (the operating-layer loop)
+tests/                 # pytest suite (189 tests)
 ```
 
 ### Earlier prototype modules
@@ -320,7 +328,7 @@ Optional environment variables: `REALITY_DATA_DIR`,
 ## Tests
 
 ```bash
-pytest                    # 182 tests, ~0.3s, no network, no randomness
+pytest                    # 189 tests, ~0.3s, no network, no randomness
 ```
 
 ## Visualizer
