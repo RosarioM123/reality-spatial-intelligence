@@ -315,10 +315,10 @@ tests/                 # pytest suite (189 tests)
 
 Four modules from a May-2026 prototype are preserved as-is for
 reference and are **not** part of the working system or test suite:
-`reality/core/edge_processor.py`, `reality/core/scene_graph.py`,
-`reality/infra/telemetry_server.py`, `reality/infra/transport.py`.
-They expect undeclared heavy dependencies (`opencv-python`, `numpy`,
-`flask`, `psutil`). See `docs/design-decisions.md` §10.
+`reality/core/edge_processor.py`, `reality/infra/telemetry_server.py`,
+`reality/infra/transport.py` expect undeclared heavy dependencies
+(`opencv-python`, `numpy`, `flask`, `psutil`); `reality/core/scene_graph.py`
+is dependency-free (stdlib only). See `docs/design-decisions.md` §10.
 
 ## Configuration
 
