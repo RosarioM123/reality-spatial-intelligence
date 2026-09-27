@@ -31,6 +31,7 @@ question the previous version cannot answer.
 - 93 tests, including the full
   observation → state → plan → action → event → observation →
   verification loop and the executor-lie failure case.
+  (Update Sep 2026: the suite has since grown to 189 tests.)
 - Docs: thesis (with objections and falsifiers), architecture,
   design decisions, this roadmap.
 
