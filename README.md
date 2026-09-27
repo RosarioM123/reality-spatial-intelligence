@@ -39,7 +39,7 @@ reality demo   # the executable thesis: a warehouse run with a success AND a cau
 reality ask examples/warehouse.json "where is package p17?" --format human  # one example file, end to end
 reality fleet examples/fleet.json --detail  # fleet ops: robots, capabilities, battery
 python examples/field_ops_demo.py  # end-to-end: mission -> fleet tasks -> telemetry
-pytest         # 180 tests, ~0.3s, no network, no randomness
+pytest         # 189 tests, ~0.3s, no network, no randomness
 ```
 
 ## Fleet operations
