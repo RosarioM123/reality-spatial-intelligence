@@ -303,6 +303,7 @@ reality/
     architecture.md    # components and the data flow of one action
     roadmap.md         # V0 (done) / V1 / V2 / V3 (plans, not promises)
     design-decisions.md# why the core choices were made
+    startup/          # wedge research notes (differentiation, week-1 review)
   research/
     adjacent-tech.md   # honest survey: PostGIS, twins, ROS 2, HA, MCP, …
 examples/              # warehouse.json, office.json, fleet.json
