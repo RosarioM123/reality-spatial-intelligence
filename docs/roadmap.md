@@ -28,7 +28,7 @@ question the previous version cannot answer.
   spoofing); warehouse + office example worlds.
 - Adapter interfaces defined: `ObservationSource`, `ActionExecutor`,
   `WorldStateStore`.
-- 93 tests, including the full
+- 189 tests, including the full
   observation → state → plan → action → event → observation →
   verification loop and the executor-lie failure case.
 - Docs: thesis (with objections and falsifiers), architecture,
